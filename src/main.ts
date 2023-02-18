@@ -33,9 +33,10 @@ function initParamsGui() {
     });
 
     const generateNewBoidsFolder = gui.addFolder("Generate new boids");
-
+    generateNewBoidsFolder.open();
     generateNewBoidsFolder.add(params, "boidCount", 10, 100).name("Count");
     generateNewBoidsFolder.add(params, "generateBoids").name("Generate boids");
+
     gui.add(params, "reset").name("Delete all boids");
 }
 
