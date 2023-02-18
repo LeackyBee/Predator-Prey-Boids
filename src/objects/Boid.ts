@@ -23,7 +23,14 @@ export class Boid implements AnimatedObject {
         this.velocity = options.velocity;
     }
 
-    static generateWithRandomPosAndVel(options?: {
+    /**
+     * Factory method to generate a boid with random position and velocity.
+     * Options can be passed to control the min/max bounds for the random generation.
+     * For any bounds that aren't passed, sensible defaults are used.
+     *
+     * @param bounds Optional bounds to control the random position/velocity generation
+     */
+    static generateWithRandomPosAndVel(bounds?: {
         minXPos?: number;
         maxXPos?: number;
         minYPos?: number;
@@ -38,19 +45,19 @@ export class Boid implements AnimatedObject {
         maxZVel?: number;
     }): Boid {
         // default position and velocity bounds
-        const minXPos = options?.minXPos ?? -50;
-        const maxXPos = options?.maxXPos ?? 50;
-        const minYPos = options?.minYPos ?? 10;
-        const maxYPos = options?.maxYPos ?? 50;
-        const minZPos = options?.minZPos ?? -50;
-        const maxZPos = options?.maxZPos ?? 50;
+        const minXPos = bounds?.minXPos ?? -50;
+        const maxXPos = bounds?.maxXPos ?? 50;
+        const minYPos = bounds?.minYPos ?? 10;
+        const maxYPos = bounds?.maxYPos ?? 50;
+        const minZPos = bounds?.minZPos ?? -50;
+        const maxZPos = bounds?.maxZPos ?? 50;
 
-        const minXVel = options?.minXVel ?? -0.1;
-        const maxXVel = options?.maxXVel ?? 0.1;
-        const minYVel = options?.minYVel ?? -0.01;
-        const maxYVel = options?.maxYVel ?? 0.01;
-        const minZVel = options?.minZVel ?? -0.1;
-        const maxZVel = options?.maxZVel ?? 0.1;
+        const minXVel = bounds?.minXVel ?? -0.1;
+        const maxXVel = bounds?.maxXVel ?? 0.1;
+        const minYVel = bounds?.minYVel ?? -0.01;
+        const maxYVel = bounds?.maxYVel ?? 0.01;
+        const minZVel = bounds?.minZVel ?? -0.1;
+        const maxZVel = bounds?.maxZVel ?? 0.1;
 
         return new Boid({
             position: new THREE.Vector3(

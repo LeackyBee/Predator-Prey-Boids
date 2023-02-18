@@ -6,11 +6,12 @@ import { GUI } from "dat.gui";
 
 const params = {
     boidCount: 20,
-    generateBoids: generateBoids,
-    reset: reset,
+    generateBoids,
+    reset,
 };
 
 const simulator = new Simulator();
+// this draws a set of axes, to help in development knowing which way is x/y/z
 simulator.enableAxesHelper();
 
 const floor = new Floor();
@@ -22,6 +23,9 @@ initParamsGui();
 
 animate();
 
+/**
+ * Sets up the GUI for adjusting parameters.
+ */
 function initParamsGui() {
     // Interface for controlling parameters
     const gui = new GUI({
@@ -35,6 +39,10 @@ function initParamsGui() {
     gui.add(params, "reset").name("Delete all boids");
 }
 
+/**
+ * Generates random boids. The number of boids to generate is set by
+ * `params.boidCount`.
+ */
 function generateBoids() {
     for (let i = 0; i < params.boidCount; i++) {
         const boid = Boid.generateWithRandomPosAndVel();
@@ -42,11 +50,16 @@ function generateBoids() {
     }
 }
 
+/**
+ * Resets the simulation by removing all boids.
+ */
 function reset() {
     simulator.resetAnimatedObjects();
 }
 
-// The render loop - gets called once per frame to update the scene
+/**
+ * The render loop - gets called once per frame to update the scene.
+ */
 function animate() {
     requestAnimationFrame(animate);
     simulator.update();
