@@ -19,7 +19,7 @@ export class Simulator {
         // initialise scene
         this.scene = new THREE.Scene();
         // set the background colour
-        this.scene.background = new THREE.Color(0xbfe3dd);
+        this.scene.background = new THREE.Color(0xf1f5f9);
 
         // initialise renderer
         this.renderer = new THREE.WebGLRenderer();
@@ -30,10 +30,10 @@ export class Simulator {
         this.camera = new THREE.PerspectiveCamera(
             75,
             window.innerWidth / window.innerHeight,
-            0.1,
-            1000,
+            1,
+            5000,
         );
-        this.camera.position.set(20, 20, 20);
+        this.camera.position.set(120, 80, 120);
 
         // initialise controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);

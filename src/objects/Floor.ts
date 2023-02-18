@@ -3,18 +3,13 @@ import { StaticObject } from "../SimulationObject";
 
 export class Floor implements StaticObject {
     mesh: THREE.Mesh;
-    private readonly material: THREE.MeshBasicMaterial;
 
     constructor() {
-        const geometry = new THREE.PlaneGeometry(200, 200);
-        this.material = new THREE.MeshBasicMaterial({ color: 0x333333 });
-        this.mesh = new THREE.Mesh(geometry, this.material);
+        const geometry = new THREE.PlaneGeometry(1000, 1000);
+        const material = new THREE.MeshBasicMaterial({ color: 0xd4d4d8 });
+        this.mesh = new THREE.Mesh(geometry, material);
 
         // make the plane horizontal
-        this.mesh.rotation.x = -Math.PI / 2;
-    }
-
-    set colour(colour: THREE.Color) {
-        this.material.color = colour;
+        this.mesh.rotateX(-Math.PI / 2);
     }
 }

@@ -15,8 +15,8 @@ export class Boid implements AnimatedObject {
 
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
-        const geometry = new THREE.ConeGeometry(0.5, 1.5);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const geometry = new THREE.ConeGeometry(1, 4);
+        const material = new THREE.MeshBasicMaterial({ color: 0x1e293b });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 

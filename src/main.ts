@@ -12,7 +12,7 @@ simulator.addStaticObject(floor);
 
 const boid = new Boid({
     position: new THREE.Vector3(0, 5, 0),
-    velocity: new THREE.Vector3(0.01, 0.008, -0.011),
+    velocity: new THREE.Vector3(0, 0, 0),
 });
 simulator.addAnimatedObject(boid);
 
