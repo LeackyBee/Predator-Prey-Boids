@@ -44,7 +44,11 @@ function generateBoids() {
                 Math.random() * 40 + 10,
                 Math.random() * 50 - 25,
             ),
-            velocity: new THREE.Vector3(0, 0, 0),
+            velocity: new THREE.Vector3(
+                Math.random() * 0.2 - 0.1,
+                Math.random() * 0.02 - 0.01,
+                Math.random() * 0.2 - 0.1,
+            ),
         });
         simulator.addAnimatedObject(boid);
     }
