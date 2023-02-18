@@ -102,4 +102,11 @@ export class Simulator {
     addStaticObject(object: StaticObject) {
         this.scene.add(object.mesh);
     }
+
+    resetAnimatedObjects() {
+        for (const object of this.animatedObjects) {
+            this.scene.remove(object.mesh);
+        }
+        this.animatedObjects = [];
+    }
 }
