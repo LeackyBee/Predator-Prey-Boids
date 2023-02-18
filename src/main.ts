@@ -1,5 +1,4 @@
 import "./main.css";
-import * as THREE from "three";
 import { Simulator } from "./Simulator";
 import { Floor } from "./objects/Floor";
 import { Boid } from "./objects/Boid";
@@ -38,18 +37,7 @@ function initParamsGui() {
 
 function generateBoids() {
     for (let i = 0; i < params.boidCount; i++) {
-        const boid = new Boid({
-            position: new THREE.Vector3(
-                Math.random() * 50 - 25,
-                Math.random() * 40 + 10,
-                Math.random() * 50 - 25,
-            ),
-            velocity: new THREE.Vector3(
-                Math.random() * 0.2 - 0.1,
-                Math.random() * 0.02 - 0.01,
-                Math.random() * 0.2 - 0.1,
-            ),
-        });
+        const boid = Boid.generateWithRandomPosAndVel();
         simulator.addAnimatedObject(boid);
     }
 }

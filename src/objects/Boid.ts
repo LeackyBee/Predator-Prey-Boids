@@ -23,6 +23,49 @@ export class Boid implements AnimatedObject {
         this.velocity = options.velocity;
     }
 
+    static generateWithRandomPosAndVel(options?: {
+        minXPos?: number;
+        maxXPos?: number;
+        minYPos?: number;
+        maxYPos?: number;
+        minZPos?: number;
+        maxZPos?: number;
+        minXVel?: number;
+        maxXVel?: number;
+        minYVel?: number;
+        maxYVel?: number;
+        minZVel?: number;
+        maxZVel?: number;
+    }): Boid {
+        // default position and velocity bounds
+        const minXPos = options?.minXPos ?? -50;
+        const maxXPos = options?.maxXPos ?? 50;
+        const minYPos = options?.minYPos ?? 10;
+        const maxYPos = options?.maxYPos ?? 50;
+        const minZPos = options?.minZPos ?? -50;
+        const maxZPos = options?.maxZPos ?? 50;
+
+        const minXVel = options?.minXVel ?? -0.1;
+        const maxXVel = options?.maxXVel ?? 0.1;
+        const minYVel = options?.minYVel ?? -0.01;
+        const maxYVel = options?.maxYVel ?? 0.01;
+        const minZVel = options?.minZVel ?? -0.1;
+        const maxZVel = options?.maxZVel ?? 0.1;
+
+        return new Boid({
+            position: new THREE.Vector3(
+                Math.random() * (maxXPos - minXPos) + minXPos,
+                Math.random() * (maxYPos - minYPos) + minYPos,
+                Math.random() * (maxZPos - minZPos) + minZPos,
+            ),
+            velocity: new THREE.Vector3(
+                Math.random() * (maxXVel - minXVel) + minXVel,
+                Math.random() * (maxYVel - minYVel) + minYVel,
+                Math.random() * (maxZVel - minZVel) + minZVel,
+            ),
+        });
+    }
+
     update() {
         // point the void to face in the direction it's moving
         this.pointInDirection(this.velocity);
