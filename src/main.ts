@@ -2,8 +2,8 @@ import "./main.css";
 import { BoidSimulation } from "./BoidSimulation";
 
 const simulation = new BoidSimulation();
-// this draws a set of axes, to help in development knowing which way is x/y/z
-simulation.enableAxesHelper();
+// uncomment this line to draw a set of axes, to help in development knowing which way is x/y/z
+// simulation.enableAxesHelper();
 
 animate();
 
