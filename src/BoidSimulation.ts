@@ -51,7 +51,7 @@ export class BoidSimulation extends Simulation {
         this.controlsGui = new GUI({
             hideable: false,
         });
-        this.controlsGui.add(this.simParams, "boidCount", 10, 100).name("Boid count");
+        this.controlsGui.add(this.simParams, "boidCount", 10, 200).name("Boid count");
         this.controlsGui.add(this.simParams, "maxSpeed", 0.1, 2, 0.01).name("Max speed");
 
         // controls to change level of randomness
