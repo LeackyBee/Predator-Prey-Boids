@@ -32,8 +32,8 @@ export class BoidSimulation extends Simulation {
         new SeparationRule(0.8),
         new CohesionRule(1),
         new AlignmentRule(1),
-        new WorldBoundaryRule(1),
-        new CollisionAvoidanceRule(2),
+        new WorldBoundaryRule(10),
+        new CollisionAvoidanceRule(10),
     ];
 
     constructor(params?: BoidSimulationParams) {

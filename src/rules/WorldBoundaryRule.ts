@@ -7,7 +7,20 @@ import * as THREE from "three";
  * don't go flying off into oblivion
  */
 export class WorldBoundaryRule extends Rule {
-    private static readonly DISTANCE_THRESHOLD = 5;
+    /**
+     * How "sharp" the world boundary should be.
+     * Higher values will produce snappier changes in direction.
+     *
+     * Controls the steepness of the curve of the exponential weighting of distance.
+     *
+     * Min value: 1
+     */
+    private readonly SHARPNESS;
+
+    constructor(weight: number, sharpness?: number) {
+        super(weight);
+        this.SHARPNESS = sharpness ?? 1.5;
+    }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         const avoidNegXBound = this.avoidBoundaryVector(
@@ -69,11 +82,7 @@ export class WorldBoundaryRule extends Rule {
     ): THREE.Vector3 {
         const distToWall = isLowBoundary ? position - boundary : boundary - position;
 
-        if (distToWall > WorldBoundaryRule.DISTANCE_THRESHOLD) {
-            return new THREE.Vector3();
-        }
-
-        const avoidanceMagnitude = Math.exp(-distToWall);
+        const avoidanceMagnitude = Math.pow(this.SHARPNESS, -distToWall);
         avoidanceVector.setLength(avoidanceMagnitude);
         return avoidanceVector;
     }
