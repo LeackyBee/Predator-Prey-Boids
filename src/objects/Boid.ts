@@ -92,28 +92,6 @@ export class Boid {
 
         // move the boid by its velocity vector
         this.position.add(this.velocity);
-
-        // constrain boids from just flying off into oblivion
-        // TODO replace this with actually avoiding floor/boundaries
-        const BOX_SIZE = 100;
-        if (this.position.y < 0) {
-            this.position.setY(0);
-        }
-        if (this.position.y > BOX_SIZE) {
-            this.position.setY(BOX_SIZE);
-        }
-        if (this.position.x > BOX_SIZE) {
-            this.position.setX(BOX_SIZE);
-        }
-        if (this.position.x < -BOX_SIZE) {
-            this.position.setX(-BOX_SIZE);
-        }
-        if (this.position.z > BOX_SIZE) {
-            this.position.setZ(BOX_SIZE);
-        }
-        if (this.position.z < -BOX_SIZE) {
-            this.position.setZ(-BOX_SIZE);
-        }
     }
 
     /**

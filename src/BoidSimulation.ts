@@ -5,10 +5,13 @@ import { Floor } from "./objects/Floor";
 import { SeparationRule } from "./rules/SeparationRule";
 import { CohesionRule } from "./rules/CohesionRule";
 import { AlignmentRule } from "./rules/AlignmentRule";
+import { Bounds3D } from "./Bounds3D";
+import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 
 export interface BoidSimulationParams {
     boidCount: number;
     visibilityThreshold: number;
+    worldDimens: Bounds3D;
 }
 
 export class BoidSimulation extends Simulation {
@@ -19,9 +22,15 @@ export class BoidSimulation extends Simulation {
     simParams: BoidSimulationParams = {
         boidCount: 20,
         visibilityThreshold: 50,
+        worldDimens: Bounds3D.centredXZ(400, 400, 200),
     };
 
-    rules = [new SeparationRule(0.8), new CohesionRule(1), new AlignmentRule(1)];
+    rules = [
+        new SeparationRule(0.8),
+        new CohesionRule(1),
+        new AlignmentRule(1),
+        new WorldBoundaryRule(1),
+    ];
 
     constructor(params?: BoidSimulationParams) {
         super();
@@ -49,6 +58,7 @@ export class BoidSimulation extends Simulation {
             // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
             boid.update(this.rules, {
                 neighbours: this.getBoidNeighbours(boid),
+                simParams: this.simParams,
             }),
         );
 
