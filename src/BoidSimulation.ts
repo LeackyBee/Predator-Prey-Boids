@@ -1,6 +1,7 @@
 import { Simulation } from "./Simulation";
 import { Boid } from "./objects/Boid";
 import { GUI } from "dat.gui";
+import { Floor } from "./objects/Floor";
 
 export class BoidSimulation extends Simulation {
     boids: Boid[] = [];
@@ -16,8 +17,11 @@ export class BoidSimulation extends Simulation {
         this.controlsGui = new GUI({
             hideable: false,
         });
-
         this.controlsGui.add(this, "boidCount", 10, 100).name("Boid count");
+
+        // add a floor to the simulation
+        const floor = new Floor();
+        this.addObjectToScene(floor.mesh);
     }
 
     update() {
