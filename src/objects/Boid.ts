@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { AnimatedObject } from "../SimulationObject";
 
 export interface BoidOptions {
     // Initial boid position
@@ -8,7 +7,7 @@ export interface BoidOptions {
     velocity: THREE.Vector3;
 }
 
-export class Boid implements AnimatedObject {
+export class Boid {
     mesh: THREE.Mesh;
 
     velocity: THREE.Vector3;

@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { StaticObject } from "../SimulationObject";
 
 export interface FloorOptions {
     withGrid?: boolean;
 }
 
-export class Floor implements StaticObject {
+export class Floor {
     mesh: THREE.Object3D<THREE.Event>;
 
     private static readonly SIZE = 1000;

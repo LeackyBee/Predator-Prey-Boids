@@ -1,14 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { AnimatedObject, StaticObject } from "./SimulationObject";
 
 export class Simulation {
-    scene: THREE.Scene;
-    renderer: THREE.Renderer;
-    camera: THREE.PerspectiveCamera;
+    private readonly scene: THREE.Scene;
+    private renderer: THREE.Renderer;
+    private readonly camera: THREE.PerspectiveCamera;
     private controls: OrbitControls;
-
-    private animatedObjects: AnimatedObject[] = [];
 
     /**
      * Initialises the scene, renderer, camera, and controls.
@@ -76,7 +73,6 @@ export class Simulation {
      */
     update() {
         this.controls.update();
-        this.animatedObjects.map((object) => object.update());
         this.render();
     }
 
@@ -91,22 +87,14 @@ export class Simulation {
         this.scene.add(axesHelper);
     }
 
-    addAnimatedObject(object: AnimatedObject) {
-        this.scene.add(object.mesh);
-        this.animatedObjects.push(object);
-    }
-
     /**
      * Add a new object to the scene.
      */
-    addStaticObject(object: StaticObject) {
-        this.scene.add(object.mesh);
+    addObjectToScene(object: THREE.Object3D<THREE.Event>) {
+        this.scene.add(object);
     }
 
-    resetAnimatedObjects() {
-        for (const object of this.animatedObjects) {
-            this.scene.remove(object.mesh);
-        }
-        this.animatedObjects = [];
+    removeObjectFromScene(object: THREE.Object3D<THREE.Event>) {
+        this.scene.remove(object);
     }
 }
