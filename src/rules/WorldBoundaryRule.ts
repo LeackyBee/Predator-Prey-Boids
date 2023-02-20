@@ -7,6 +7,8 @@ import * as THREE from "three";
  * don't go flying off into oblivion
  */
 export class WorldBoundaryRule extends Rule {
+    private static readonly DISTANCE_THRESHOLD = 5;
+
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         const avoidNegXBound = this.avoidBoundaryVector(
             thisBoid.position.x,
@@ -56,7 +58,6 @@ export class WorldBoundaryRule extends Rule {
         avoidBoundariesVector.add(avoidPosZBound);
 
         avoidBoundariesVector.multiplyScalar(this.weight);
-
         return avoidBoundariesVector;
     }
 
@@ -67,6 +68,11 @@ export class WorldBoundaryRule extends Rule {
         isLowBoundary: boolean,
     ): THREE.Vector3 {
         const distToWall = isLowBoundary ? position - boundary : boundary - position;
+
+        if (distToWall > WorldBoundaryRule.DISTANCE_THRESHOLD) {
+            return new THREE.Vector3();
+        }
+
         const avoidanceMagnitude = Math.exp(-distToWall);
         avoidanceVector.setLength(avoidanceMagnitude);
         return avoidanceVector;
