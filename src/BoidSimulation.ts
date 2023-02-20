@@ -12,6 +12,7 @@ import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 export interface BoidSimulationParams {
     boidCount: number;
     visibilityThreshold: number;
+    maxVelocity: number;
     worldDimens: Bounds3D;
 }
 
@@ -21,8 +22,9 @@ export class BoidSimulation extends Simulation {
     boids: Boid[] = [];
 
     simParams: BoidSimulationParams = {
-        boidCount: 20,
+        boidCount: 50,
         visibilityThreshold: 50,
+        maxVelocity: 0.5,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
     };
 

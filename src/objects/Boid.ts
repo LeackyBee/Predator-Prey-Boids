@@ -45,12 +45,12 @@ export class Boid {
         const minZPos = options?.positionBounds?.zMin ?? -100;
         const maxZPos = options?.positionBounds?.zMax ?? 100;
 
-        const minXVel = options?.velocityBounds?.xMin ?? -0.1;
-        const maxXVel = options?.velocityBounds?.xMax ?? 0.1;
-        const minYVel = options?.velocityBounds?.yMin ?? -0.01;
-        const maxYVel = options?.velocityBounds?.yMax ?? 0.01;
-        const minZVel = options?.velocityBounds?.zMin ?? -0.1;
-        const maxZVel = options?.velocityBounds?.zMax ?? 0.1;
+        const minXVel = options?.velocityBounds?.xMin ?? -0.2;
+        const maxXVel = options?.velocityBounds?.xMax ?? 0.2;
+        const minYVel = options?.velocityBounds?.yMin ?? -0.02;
+        const maxYVel = options?.velocityBounds?.yMax ?? 0.02;
+        const minZVel = options?.velocityBounds?.zMin ?? -0.2;
+        const maxZVel = options?.velocityBounds?.zMax ?? 0.2;
 
         return new Boid({
             position: new THREE.Vector3(
@@ -75,8 +75,8 @@ export class Boid {
             this.velocity.add(ruleVector);
         }
 
-        if (this.velocity.length() > 0.3) {
-            this.velocity.setLength(0.3);
+        if (this.velocity.length() > ruleArguments.simParams.maxVelocity) {
+            this.velocity.setLength(ruleArguments.simParams.maxVelocity);
         }
 
         // move the boid by its velocity vector
