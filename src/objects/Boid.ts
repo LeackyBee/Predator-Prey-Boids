@@ -89,8 +89,8 @@ export class Boid {
             this.velocity.add(ruleVector);
         }
 
-        if (this.velocity.length() > ruleArguments.simParams.maxVelocity) {
-            this.velocity.setLength(ruleArguments.simParams.maxVelocity);
+        if (this.velocity.length() > ruleArguments.simParams.maxSpeed) {
+            this.velocity.setLength(ruleArguments.simParams.maxSpeed);
         }
 
         this.updateRandomBias(

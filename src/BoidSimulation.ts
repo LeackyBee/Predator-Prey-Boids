@@ -12,7 +12,7 @@ import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 export interface BoidSimulationParams {
     boidCount: number;
     visibilityThreshold: number;
-    maxVelocity: number;
+    maxSpeed: number;
     worldDimens: Bounds3D;
     randomnessPerTimestep: number;
     randomnessLimit: number;
@@ -26,7 +26,7 @@ export class BoidSimulation extends Simulation {
     simParams: BoidSimulationParams = {
         boidCount: 50,
         visibilityThreshold: 50,
-        maxVelocity: 0.5,
+        maxSpeed: 0.5,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
@@ -52,6 +52,7 @@ export class BoidSimulation extends Simulation {
             hideable: false,
         });
         this.controlsGui.add(this.simParams, "boidCount", 10, 100).name("Boid count");
+        this.controlsGui.add(this.simParams, "maxSpeed", 0.1, 2, 0.01).name("Max speed");
 
         // controls to change level of randomness
         const randomnessGui = this.controlsGui.addFolder("Randomness");
