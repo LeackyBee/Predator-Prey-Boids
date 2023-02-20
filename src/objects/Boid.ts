@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Rule, RuleArguments } from "../rules/Rule";
 
 export interface BoidOptions {
     // Initial boid position
@@ -20,6 +21,10 @@ export class Boid {
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 
         this.velocity = options.velocity;
+    }
+
+    get position() {
+        return this.mesh.position;
     }
 
     /**
@@ -72,12 +77,43 @@ export class Boid {
         });
     }
 
-    update() {
+    update(rules: Rule[], ruleArguments: RuleArguments) {
         // point the void to face in the direction it's moving
         this.pointInDirection(this.velocity);
 
+        for (const rule of rules) {
+            const ruleVector = rule.calculateVector(this, ruleArguments);
+            this.velocity.add(ruleVector);
+        }
+
+        if (this.velocity.length() > 0.3) {
+            this.velocity.setLength(0.3);
+        }
+
         // move the boid by its velocity vector
-        this.mesh.position.add(this.velocity);
+        this.position.add(this.velocity);
+
+        // constrain boids from just flying off into oblivion
+        // TODO replace this with actually avoiding floor/boundaries
+        const BOX_SIZE = 100;
+        if (this.position.y < 0) {
+            this.position.setY(0);
+        }
+        if (this.position.y > BOX_SIZE) {
+            this.position.setY(BOX_SIZE);
+        }
+        if (this.position.x > BOX_SIZE) {
+            this.position.setX(BOX_SIZE);
+        }
+        if (this.position.x < -BOX_SIZE) {
+            this.position.setX(-BOX_SIZE);
+        }
+        if (this.position.z > BOX_SIZE) {
+            this.position.setZ(BOX_SIZE);
+        }
+        if (this.position.z < -BOX_SIZE) {
+            this.position.setZ(-BOX_SIZE);
+        }
     }
 
     /**
@@ -95,5 +131,9 @@ export class Boid {
         this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), -theta);
         // rotate around the world's y-axis by phi anticlockwise
         this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), phi);
+    }
+
+    isOtherBoidVisible(other: Boid, visibilityThreshold: number): boolean {
+        return this.position.distanceTo(other.position) < visibilityThreshold;
     }
 }
