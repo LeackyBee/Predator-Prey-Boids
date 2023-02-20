@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { AnimatedObject, StaticObject } from "./SimulationObject";
 
-export class Simulator {
+export class Simulation {
     scene: THREE.Scene;
     renderer: THREE.Renderer;
     camera: THREE.PerspectiveCamera;
