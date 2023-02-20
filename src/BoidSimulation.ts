@@ -14,6 +14,8 @@ export interface BoidSimulationParams {
     visibilityThreshold: number;
     maxVelocity: number;
     worldDimens: Bounds3D;
+    randomnessPerTimestep: number;
+    randomnessLimit: number;
 }
 
 export class BoidSimulation extends Simulation {
@@ -26,6 +28,8 @@ export class BoidSimulation extends Simulation {
         visibilityThreshold: 50,
         maxVelocity: 0.5,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
+        randomnessPerTimestep: 0.01,
+        randomnessLimit: 0.1,
     };
 
     rules = [
@@ -48,6 +52,14 @@ export class BoidSimulation extends Simulation {
             hideable: false,
         });
         this.controlsGui.add(this.simParams, "boidCount", 10, 100).name("Boid count");
+
+        // controls to change level of randomness
+        const randomnessGui = this.controlsGui.addFolder("Randomness");
+        randomnessGui.open();
+        randomnessGui
+            .add(this.simParams, "randomnessPerTimestep", 0, 0.02, 0.001)
+            .name("Per timestep");
+        randomnessGui.add(this.simParams, "randomnessLimit", 0, 0.5, 0.01).name("Limit");
 
         // add a floor to the simulation
         const floor = new Floor();

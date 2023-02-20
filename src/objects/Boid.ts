@@ -14,6 +14,20 @@ export class Boid {
 
     velocity: THREE.Vector3;
 
+    /**
+     * Each boid has a random bias that gets added to the calculated velocity
+     * at each timestep.
+     * The random bias is changed by a tiny random amount each timestep.
+     *
+     * This provides "slower" randomness than directly adding randomness to the
+     * velocity at each timestep. (Because the randomness is effectively
+     * remembered between timesteps.)
+     *
+     * Once the random bias gets above a certain threshold, it's scaled to a tiny
+     * amount again, so that it doesn't just keep accumulating over time forever.
+     */
+    randomBias = new THREE.Vector3();
+
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         const geometry = new THREE.ConeGeometry(1, 4);
@@ -79,6 +93,12 @@ export class Boid {
             this.velocity.setLength(ruleArguments.simParams.maxVelocity);
         }
 
+        this.updateRandomBias(
+            ruleArguments.simParams.randomnessPerTimestep,
+            ruleArguments.simParams.randomnessLimit,
+        );
+        this.velocity.add(this.randomBias);
+
         // move the boid by its velocity vector
         this.position.add(this.velocity);
     }
@@ -102,5 +122,21 @@ export class Boid {
 
     isOtherBoidVisible(other: Boid, visibilityThreshold: number): boolean {
         return this.position.distanceTo(other.position) < visibilityThreshold;
+    }
+
+    updateRandomBias(randomnessPerTimestep: number, randomnessLimit: number) {
+        this.randomBias.add(
+            new THREE.Vector3(
+                Math.random() * randomnessPerTimestep - randomnessPerTimestep / 2,
+                Math.random() * randomnessPerTimestep - randomnessPerTimestep / 2,
+                Math.random() * randomnessPerTimestep - randomnessPerTimestep / 2,
+            ),
+        );
+
+        // once randomness gets above a certain threshold, scale it back
+        // -- so randomness doesn't just keep getting bigger all the time
+        if (this.randomBias.length() > randomnessLimit) {
+            this.randomBias.divideScalar(100);
+        }
     }
 }
