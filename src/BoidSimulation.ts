@@ -7,6 +7,7 @@ import { CohesionRule } from "./rules/CohesionRule";
 import { AlignmentRule } from "./rules/AlignmentRule";
 import { Bounds3D } from "./Bounds3D";
 import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
+import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 
 export interface BoidSimulationParams {
     boidCount: number;
@@ -22,7 +23,7 @@ export class BoidSimulation extends Simulation {
     simParams: BoidSimulationParams = {
         boidCount: 20,
         visibilityThreshold: 50,
-        worldDimens: Bounds3D.centredXZ(400, 400, 200),
+        worldDimens: Bounds3D.centredXZ(200, 200, 100),
     };
 
     rules = [
@@ -30,6 +31,7 @@ export class BoidSimulation extends Simulation {
         new CohesionRule(1),
         new AlignmentRule(1),
         new WorldBoundaryRule(1),
+        new CollisionAvoidanceRule(2),
     ];
 
     constructor(params?: BoidSimulationParams) {
