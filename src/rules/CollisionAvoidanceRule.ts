@@ -1,8 +1,14 @@
-import { Rule, RuleArguments } from "./Rule";
+import { Rule, RuleArguments, RuleOptions } from "./Rule";
 import { Boid } from "../objects/Boid";
 import * as THREE from "three";
 
+export interface CollisionAvoidanceRuleOptions extends RuleOptions {
+    sharpness?: number;
+}
+
 export class CollisionAvoidanceRule extends Rule {
+    readonly name = "Collision Avoidance";
+
     /**
      * How "aggressive" the collision avoidance should be.
      * Higher values will allow the boids to be closer together, and will produce
@@ -14,9 +20,9 @@ export class CollisionAvoidanceRule extends Rule {
      */
     private readonly SHARPNESS;
 
-    constructor(weight: number, sharpness?: number) {
-        super(weight);
-        this.SHARPNESS = sharpness ?? 3;
+    constructor(weight: number, options?: CollisionAvoidanceRuleOptions) {
+        super(weight, options);
+        this.SHARPNESS = options?.sharpness ?? 3;
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {

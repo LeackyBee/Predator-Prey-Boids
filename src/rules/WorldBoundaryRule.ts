@@ -1,12 +1,18 @@
-import { Rule, RuleArguments } from "./Rule";
+import { Rule, RuleArguments, RuleOptions } from "./Rule";
 import { Boid } from "../objects/Boid";
 import * as THREE from "three";
+
+export interface WorldBoundaryRuleOptions extends RuleOptions {
+    sharpness?: number;
+}
 
 /**
  * Rule to contain the boids inside the world area, so they
  * don't go flying off into oblivion
  */
 export class WorldBoundaryRule extends Rule {
+    readonly name = "Avoid World Boundary";
+
     /**
      * How "sharp" the world boundary should be.
      * Higher values will produce snappier changes in direction.
@@ -17,9 +23,9 @@ export class WorldBoundaryRule extends Rule {
      */
     private readonly SHARPNESS;
 
-    constructor(weight: number, sharpness?: number) {
-        super(weight);
-        this.SHARPNESS = sharpness ?? 1.5;
+    constructor(weight: number, options?: WorldBoundaryRuleOptions) {
+        super(weight, options);
+        this.SHARPNESS = options?.sharpness ?? 1.5;
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {

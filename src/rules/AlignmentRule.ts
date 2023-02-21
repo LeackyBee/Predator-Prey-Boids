@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { Boid } from "../objects/Boid";
 
 export class AlignmentRule extends Rule {
+    readonly name = "Alignment";
+
     calculateVector(_thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         // no alignment force if there are no visible neighbours
         if (args.neighbours.length === 0) {

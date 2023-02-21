@@ -65,6 +65,13 @@ export class BoidSimulation extends Simulation {
             .name("Per timestep");
         randomnessGui.add(this.simParams, "randomnessLimit", 0, 0.5, 0.01).name("Limit");
 
+        // controls to change rule weights
+        const ruleWeightsGui = this.controlsGui.addFolder("Rule weights");
+        ruleWeightsGui.open();
+        for (const rule of this.rules) {
+            ruleWeightsGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        }
+
         // add a floor to the simulation
         const floor = new Floor();
         this.addObjectToScene(floor.mesh);
