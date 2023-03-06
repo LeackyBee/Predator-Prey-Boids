@@ -1,10 +1,13 @@
 export class Bounds3D {
     xMin: number;
     xMax: number;
+    xSize: number;
     yMin: number;
     yMax: number;
+    ySize: number;
     zMin: number;
     zMax: number;
+    zSize: number;
 
     constructor(
         xMin: number,
@@ -16,10 +19,13 @@ export class Bounds3D {
     ) {
         this.xMin = xMin;
         this.xMax = xMax;
+        this.xSize = xMax - xMin;
         this.yMin = yMin;
         this.yMax = yMax;
+        this.ySize = yMax - yMin;
         this.zMin = zMin;
         this.zMax = zMax;
+        this.zSize = zMax - zMin;
     }
 
     static centredXZ(xWidth: number, zWidth: number, height: number): Bounds3D {
