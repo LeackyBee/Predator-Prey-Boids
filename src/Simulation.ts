@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export class Simulation {
-    private readonly scene: THREE.Scene;
-    private renderer: THREE.Renderer;
+    protected readonly scene: THREE.Scene;
+    protected renderer: THREE.Renderer;
     private readonly camera: THREE.PerspectiveCamera;
     private controls: OrbitControls;
 
@@ -16,10 +16,16 @@ export class Simulation {
         // initialise scene
         this.scene = new THREE.Scene();
         // set the background colour
-        this.scene.background = new THREE.Color(0xf1f5f9);
+        // this.scene.background = new THREE.Color(0xf1f5f9);
 
         // initialise renderer
         this.renderer = new THREE.WebGLRenderer();
+
+        // @ts-ignore
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        // @ts-ignore
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 

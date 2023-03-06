@@ -1,7 +1,7 @@
 import { Simulation } from "./Simulation";
 import { Boid } from "./objects/Boid";
 import { GUI } from "dat.gui";
-import { Floor } from "./objects/Floor";
+// import { Floor } from "./objects/Floor";
 import { SeparationRule } from "./rules/SeparationRule";
 import { CohesionRule } from "./rules/CohesionRule";
 import { AlignmentRule } from "./rules/AlignmentRule";
@@ -9,6 +9,10 @@ import { Bounds3D } from "./Bounds3D";
 import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 import { Arena } from "./objects/Arena";
+import { Water } from "./objects/Water";
+import { Sky } from "./objects/Sky.js";
+import * as THREE from "three";
+import { SunParams } from "./objects/Sun";
 
 export interface BoidSimulationParams {
     boidCount: number;
@@ -40,6 +44,12 @@ export class BoidSimulation extends Simulation {
         new WorldBoundaryRule(10),
         new CollisionAvoidanceRule(10),
     ];
+
+    private readonly water: Water;
+    private readonly sky: Sky;
+    private sun: THREE.Vector3;
+    private generator: THREE.PMREMGenerator;
+    private renderTarget?: THREE.WebGLRenderTarget;
 
     constructor(params?: BoidSimulationParams) {
         super();
@@ -74,11 +84,79 @@ export class BoidSimulation extends Simulation {
         }
 
         // add a floor to the simulation
-        const floor = new Floor();
-        this.addToScene(floor.mesh);
+        //const floor = new Floor();
+        //this.addToScene(floor.mesh);
 
         const arena = new Arena(this.simParams.worldDimens);
         this.addToScene(arena.mesh);
+
+        // Sun
+        this.sun = new THREE.Vector3();
+
+        // Water
+
+        const waterGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+
+        this.water = new Water(
+            waterGeometry,
+            {
+                textureWidth: 512,
+                textureHeight: 512,
+                waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                } ),
+                sunDirection: new THREE.Vector3(),
+                sunColor: 0xffffff,
+                waterColor: 0x001e0f,
+                distortionScale: 3.7,
+                fog: true
+            }
+        );
+
+        this.water.rotation.x = - Math.PI / 2;
+
+
+        this.addToScene(this.water);
+
+        // Sky
+
+        this.sky = new Sky();
+        this.sky.scale.setScalar(10_000);
+        this.addToScene(this.sky);
+
+        // @ts-ignore
+        const skyUniforms = this.sky.material.uniforms;
+
+        skyUniforms[ 'turbidity' ].value = 10;
+        skyUniforms[ 'rayleigh' ].value = 2;
+        skyUniforms[ 'mieCoefficient' ].value = 0.005;
+        skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+        // @ts-ignore
+        this.generator = new THREE.PMREMGenerator(this.renderer);
+
+        this.updateSun();
+
+
+    }
+
+    updateSun() {
+
+        const phi = THREE.MathUtils.degToRad( 90 - SunParams.elevation );
+        const theta = THREE.MathUtils.degToRad( SunParams.azimuth );
+
+        this.sun.setFromSphericalCoords( 1, phi, theta );
+
+        // @ts-ignore
+        this.sky.material.uniforms[ 'sunPosition' ].value.copy( this.sun );
+        // @ts-ignore
+        this.water.material.uniforms[ 'sunDirection' ].value.copy( this.sun ).normalize();
+
+        if (this.renderTarget !== undefined) this.renderTarget.dispose();
+        // @ts-ignore
+        this.renderTarget = this.generator.fromScene( this.sky );
+
+        this.scene.environment = this.renderTarget.texture;
     }
 
     update() {
@@ -92,6 +170,9 @@ export class BoidSimulation extends Simulation {
                 simParams: this.simParams,
             }),
         );
+
+        // @ts-ignore
+        this.water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
         super.update();
     }
