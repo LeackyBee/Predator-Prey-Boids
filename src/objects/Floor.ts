@@ -7,7 +7,7 @@ export interface FloorOptions {
 export class Floor {
     mesh: THREE.Object3D<THREE.Event>;
 
-    private static readonly SIZE = 1000;
+    private static readonly SIZE = 300;
 
     constructor(options?: FloorOptions) {
         const geometry = new THREE.PlaneGeometry(Floor.SIZE, Floor.SIZE);
@@ -20,7 +20,7 @@ export class Floor {
         floorMesh.position.setY(-1);
 
         if (options?.withGrid ?? true) {
-            const gridHelper = new THREE.GridHelper(Floor.SIZE, 20);
+            const gridHelper = new THREE.GridHelper(Floor.SIZE, 30);
             gridHelper.add(floorMesh);
 
             this.mesh = gridHelper;

@@ -94,6 +94,12 @@ export class Simulation {
         this.scene.add(object);
     }
 
+    addObjectsToScene(objects: Array<THREE.Object3D<THREE.Event>>) {
+        for (const obj of objects) {
+            this.scene.add(obj);
+        }
+    }
+
     removeObjectFromScene(object: THREE.Object3D<THREE.Event>) {
         this.scene.remove(object);
     }

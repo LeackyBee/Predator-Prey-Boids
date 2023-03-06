@@ -31,11 +31,19 @@ export class Boid {
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         const geometry = new THREE.ConeGeometry(1, 4);
-        const material = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+        const material = new THREE.MeshBasicMaterial({ color: Boid.getColor() });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 
         this.velocity = options.velocity;
+    }
+
+    private static getColor(): string {
+        const brightness = Math.round(Math.random() * 100);
+        const r = 30 + brightness;
+        const g = 41 + brightness;
+        const b = 59 + brightness;
+        return `rgb(${r}, ${g}, ${b})`;
     }
 
     get position() {

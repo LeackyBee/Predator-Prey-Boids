@@ -8,6 +8,7 @@ import { AlignmentRule } from "./rules/AlignmentRule";
 import { Bounds3D } from "./Bounds3D";
 import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
+import { Arena } from "./objects/Arena";
 
 export interface BoidSimulationParams {
     boidCount: number;
@@ -75,6 +76,9 @@ export class BoidSimulation extends Simulation {
         // add a floor to the simulation
         const floor = new Floor();
         this.addObjectToScene(floor.mesh);
+
+        const arena = new Arena(this.simParams.worldDimens);
+        this.addObjectsToScene(arena.mesh);
     }
 
     update() {
