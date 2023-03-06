@@ -14,6 +14,12 @@ export class Boid {
 
     velocity: THREE.Vector3;
 
+    predatorRange = 70;
+
+    visibilityRange = 50;
+    maxSpeed = 0.5;
+
+
     /**
      * Each boid has a random bias that gets added to the calculated velocity
      * at each timestep.
@@ -40,7 +46,7 @@ export class Boid {
         const material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour() });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
-
+        
         this.velocity = options.velocity;
     }
 
@@ -109,8 +115,8 @@ export class Boid {
             this.velocity.add(ruleVector);
         }
 
-        if (this.velocity.length() > ruleArguments.simParams.maxSpeed) {
-            this.velocity.setLength(ruleArguments.simParams.maxSpeed);
+        if (this.velocity.length() > this.maxSpeed) {
+            this.velocity.setLength(this.maxSpeed);
         }
 
         this.updateRandomBias(
