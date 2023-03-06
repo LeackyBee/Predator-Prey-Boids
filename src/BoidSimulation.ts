@@ -10,12 +10,13 @@ import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 import { PredatorAvoidanceRule } from "./rules/PredatorAvoidanceFile";
 import { Arena } from "./objects/Arena";
+import { Doib } from "./objects/Doib";
+import { Predator } from "./objects/Predator";
 
 export interface BoidSimulationParams {
     boidCount: number;
     doibCount: number;
     predCount: number;
-    predMaxSpeed: number;
     worldDimens: Bounds3D;
     randomnessPerTimestep: number;
     randomnessLimit: number;
@@ -25,14 +26,13 @@ export class BoidSimulation extends Simulation {
     controlsGui: GUI;
 
     boids: Boid[] = [];
-    doibs: Boid[] = [];
-    predators: Boid[] = [];
+    doibs: Doib[] = [];
+    predators: Predator[] = [];
 
     simParams: BoidSimulationParams = {
         boidCount: 50,
         doibCount: 50,
         predCount: 2,
-        predMaxSpeed: 0.1,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
@@ -59,10 +59,8 @@ export class BoidSimulation extends Simulation {
             hideable: false,
         });
         this.controlsGui.add(this.simParams, "boidCount", 10, 200).name("Boid count");
-        this.controlsGui.add(this.simParams, "maxSpeed", 0.1, 2, 0.01).name("Max speed");
-        this.controlsGui
-            .add(this.simParams, "visibilityThreshold", 5, 100)
-            .name("Visibility radius");
+        this.controlsGui.add(this.simParams, "doibCount", 10, 200).name("Doib count");
+        this.controlsGui.add(this.simParams, "predCount", 1, 5).name("Predator count");
 
         // controls to change level of randomness
         const randomnessGui = this.controlsGui.addFolder("Randomness");
@@ -100,38 +98,91 @@ export class BoidSimulation extends Simulation {
             }),
         );
 
+        this.doibs.map((doib) =>
+        // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
+        doib.update(this.rules, {
+            neighbours: this.getBoidNeighbours(doib),
+            simParams: this.simParams,
+            predators: this.getBoidPredators(doib),
+        }),)
+
         super.update();
     }
 
     updateBoidCount() {
-        if (this.simParams.boidCount === this.boids.length) {
-            return;
-        }
-        // Calculate how many boids we need to generate/remove.
-        // Do this here so we don't evaluate boids.length on every loop iteration.
-        let difference = this.simParams.boidCount - this.boids.length;
-        while (difference > 0) {
-            // generate new boids
-            const boid = Boid.generateWithRandomPosAndVel();
-            this.addObjectToScene(boid.mesh);
-            this.boids.push(boid);
-            difference--;
-        }
-        while (difference < 0) {
-            // remove boids
-            const boid = this.boids.pop();
-            if (boid === undefined) {
-                // handle the case that for some reason there's no boid to remove
-                break;
+        if (this.simParams.boidCount !== this.boids.length) {
+            // Calculate how many boids we need to generate/remove.
+            // Do this here so we don't evaluate boids.length on every loop iteration.
+            let difference = this.simParams.boidCount - this.boids.length;
+            while (difference > 0) {
+                // generate new boids
+                const boid = Boid.generateWithRandomPosAndVel();
+                this.addObjectToScene(boid.mesh);
+                this.boids.push(boid);
+                difference--;
             }
-            this.removeObjectFromScene(boid.mesh);
-            difference++;
+            while (difference < 0) {
+                // remove boids
+                const boid = this.boids.pop();
+                if (boid === undefined) {
+                    // handle the case that for some reason there's no boid to remove
+                    break;
+                }
+                this.removeObjectFromScene(boid.mesh);
+                difference++;
+            }
+        }
+
+        if (this.simParams.doibCount !== this.doibs.length) {
+            // Calculate how many boids we need to generate/remove.
+            // Do this here so we don't evaluate boids.length on every loop iteration.
+            let difference = this.simParams.doibCount - this.doibs.length;
+            while (difference > 0) {
+                // generate new boids
+                const doib = Doib.fromBoid(Boid.generateWithRandomPosAndVel());
+                this.addObjectToScene(doib.mesh);
+                this.doibs.push(doib);
+                difference--;
+            }
+            while (difference < 0) {
+                // remove boids
+                const doib = this.doibs.pop();
+                if (doib === undefined) {
+                    // handle the case that for some reason there's no boid to remove
+                    break;
+                }
+                this.removeObjectFromScene(doib.mesh);
+                difference++;
+            }
+        }
+
+        if (this.simParams.predCount !== this.predators.length) {
+            // Calculate how many boids we need to generate/remove.
+            // Do this here so we don't evaluate boids.length on every loop iteration.
+            let difference = this.simParams.predCount - this.predators.length;
+            while (difference > 0) {
+                // generate new boids
+                const predator = Predator.fromBoid(Boid.generateWithRandomPosAndVel());
+                this.addObjectToScene(predator.mesh);
+                this.predators.push(predator);
+                difference--;
+            }
+            while (difference < 0) {
+                // remove boids
+                const predator = this.predators.pop();
+                if (predator === undefined) {
+                    // handle the case that for some reason there's no boid to remove
+                    break;
+                }
+                this.removeObjectFromScene(predator.mesh);
+                difference++;
+            }
         }
     }
 
     getBoidNeighbours(boid: Boid): Boid[] {
         const neighbours = [];
-        for (const otherBoid of this.boids) {
+        for (const otherBoid of this.boids.concat(this.doibs)) {
             if (otherBoid === boid) {
                 continue;
             }

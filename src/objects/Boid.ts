@@ -7,6 +7,7 @@ export interface BoidOptions {
     position: THREE.Vector3;
     // Initial boid velocity
     velocity: THREE.Vector3;
+    colour?: {h: number, s:number, l: number};
 }
 
 export class Boid {
@@ -17,8 +18,7 @@ export class Boid {
     predatorRange = 70;
 
     visibilityRange = 50;
-    maxSpeed = 0.5;
-
+    protected maxSpeed = 0.5;
 
     /**
      * Each boid has a random bias that gets added to the calculated velocity
@@ -38,10 +38,13 @@ export class Boid {
      * Base colour of the boid, before randomly adjusting lightness of each boid.
      * H, S, and L are in the range [0, 1].
      */
-    private baseColour = { h: 0.602, s: 0.32, l: 0.3 };
+    protected baseColour = { h: 183/360, s: 1, l: 0.3 };
 
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
+        if(options.colour){
+            this.baseColour = options.colour;
+        }
         const geometry = new THREE.ConeGeometry(1, 4);
         const material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour() });
         this.mesh = new THREE.Mesh(geometry, material);
@@ -53,7 +56,7 @@ export class Boid {
     /**
      * Randomly generate a version of `this.baseColour`, with lightness adjusted.
      */
-    private generateIndividualColour() {
+    protected generateIndividualColour() {
         const lightnessAdjust = Math.random() * 0.4 - 0.2;
 
         let l = this.baseColour.l + lightnessAdjust;
