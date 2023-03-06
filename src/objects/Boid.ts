@@ -28,22 +28,34 @@ export class Boid {
      */
     randomBias = new THREE.Vector3();
 
+    /**
+     * Base colour of the boid, before randomly adjusting lightness of each boid.
+     * H, S, and L are in the range [0, 1].
+     */
+    private baseColour = { h: 0.602, s: 0.32, l: 0.3 };
+
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         const geometry = new THREE.ConeGeometry(1, 4);
-        const material = new THREE.MeshBasicMaterial({ color: Boid.getColor() });
+        const material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour() });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 
         this.velocity = options.velocity;
     }
 
-    private static getColor(): string {
-        const brightness = Math.round(Math.random() * 100);
-        const r = 30 + brightness;
-        const g = 41 + brightness;
-        const b = 59 + brightness;
-        return `rgb(${r}, ${g}, ${b})`;
+    /**
+     * Randomly generate a version of `this.baseColour`, with lightness adjusted.
+     */
+    private generateIndividualColour() {
+        const lightnessAdjust = Math.random() * 0.4 - 0.2;
+
+        let l = this.baseColour.l + lightnessAdjust;
+        // constrain lightness to range [0, 1]
+        l = Math.max(l, 0);
+        l = Math.min(l, 1);
+
+        return new THREE.Color().setHSL(this.baseColour.h, this.baseColour.s, l);
     }
 
     get position() {
