@@ -16,7 +16,7 @@ export class Simulation {
         // initialise scene
         this.scene = new THREE.Scene();
         // set the background colour
-        // this.scene.background = new THREE.Color(0xf1f5f9);
+        this.scene.background = new THREE.Color(0xf1f5f9);
 
         // initialise renderer
         this.renderer = new THREE.WebGLRenderer();
