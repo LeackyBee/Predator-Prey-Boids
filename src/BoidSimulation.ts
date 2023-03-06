@@ -34,7 +34,7 @@ export class BoidSimulation extends Simulation {
         visibilityThreshold: 50,
         maxSpeed: 0.5,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
-        photorealisticRendering: false,
+        photorealisticRendering: true,
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
     };
@@ -193,7 +193,7 @@ export class BoidSimulation extends Simulation {
         let difference = this.simParams.boidCount - this.boids.length;
         while (difference > 0) {
             // generate new boids
-            const boid = Boid.generateWithRandomPosAndVel();
+            const boid = Boid.generateWithRandomPosAndVel({photorealisticRendering: this.simParams.photorealisticRendering});
             this.addToScene(boid.mesh);
             this.boids.push(boid);
             difference--;

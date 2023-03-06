@@ -1,4 +1,4 @@
 export const SunParams = {
-    elevation: 2,
-    azimuth: 180
+    elevation: 5,
+    azimuth: 135
 };
