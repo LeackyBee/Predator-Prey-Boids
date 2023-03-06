@@ -3,7 +3,6 @@ import { Boid } from "../objects/Boid";
 import { BoidSimulationParams } from "../BoidSimulation";
 
 export interface RuleArguments {
-    predators: Boid[];
     neighbours: Boid[];
     simParams: BoidSimulationParams;
 }
