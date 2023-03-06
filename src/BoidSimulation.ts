@@ -8,14 +8,12 @@ import { AlignmentRule } from "./rules/AlignmentRule";
 import { Bounds3D } from "./Bounds3D";
 import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
-import { PredatorAvoidanceRule } from "./rules/PredatorAvoidanceFile";
 import { Arena } from "./objects/Arena";
 
 export interface BoidSimulationParams {
     boidCount: number;
-    doibCount: number;
-    predCount: number;
-    predMaxSpeed: number;
+    visibilityThreshold: number;
+    maxSpeed: number;
     worldDimens: Bounds3D;
     randomnessPerTimestep: number;
     randomnessLimit: number;
@@ -25,14 +23,11 @@ export class BoidSimulation extends Simulation {
     controlsGui: GUI;
 
     boids: Boid[] = [];
-    doibs: Boid[] = [];
-    predators: Boid[] = [];
 
     simParams: BoidSimulationParams = {
         boidCount: 50,
-        doibCount: 50,
-        predCount: 2,
-        predMaxSpeed: 0.1,
+        visibilityThreshold: 50,
+        maxSpeed: 0.5,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
@@ -44,7 +39,6 @@ export class BoidSimulation extends Simulation {
         new AlignmentRule(1),
         new WorldBoundaryRule(10),
         new CollisionAvoidanceRule(10),
-        new PredatorAvoidanceRule(10),
     ];
 
     constructor(params?: BoidSimulationParams) {
@@ -96,7 +90,6 @@ export class BoidSimulation extends Simulation {
             boid.update(this.rules, {
                 neighbours: this.getBoidNeighbours(boid),
                 simParams: this.simParams,
-                predators: this.getBoidPredators(boid),
             }),
         );
 
@@ -135,20 +128,10 @@ export class BoidSimulation extends Simulation {
             if (otherBoid === boid) {
                 continue;
             }
-            if (boid.isOtherBoidVisible(otherBoid, boid.visibilityRange)) {
+            if (boid.isOtherBoidVisible(otherBoid, this.simParams.visibilityThreshold)) {
                 neighbours.push(otherBoid);
             }
         }
         return neighbours;
-    }
-
-    getBoidPredators(boid: Boid): Boid[] {
-        const predators = [];
-        for (const predator of this.predators) {
-            if (boid.isOtherBoidVisible(predator, boid.predatorRange)) {
-                predators.push(predator);
-            }
-        }
-        return predators;
     }
 }
