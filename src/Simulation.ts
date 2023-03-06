@@ -90,13 +90,13 @@ export class Simulation {
     /**
      * Add a new object to the scene.
      */
-    addObjectToScene(object: THREE.Object3D<THREE.Event>) {
-        this.scene.add(object);
-    }
-
-    addObjectsToScene(objects: Array<THREE.Object3D<THREE.Event>>) {
-        for (const obj of objects) {
-            this.scene.add(obj);
+    addToScene(objects: THREE.Object3D<THREE.Event> | Array<THREE.Object3D<THREE.Event>>) {
+        if (Array.isArray(objects)) {
+            for (const obj of objects) {
+                this.scene.add(obj);
+            }
+        } else {
+            this.scene.add(objects);
         }
     }
 

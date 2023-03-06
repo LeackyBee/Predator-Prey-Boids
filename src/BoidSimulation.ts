@@ -75,10 +75,10 @@ export class BoidSimulation extends Simulation {
 
         // add a floor to the simulation
         const floor = new Floor();
-        this.addObjectToScene(floor.mesh);
+        this.addToScene(floor.mesh);
 
         const arena = new Arena(this.simParams.worldDimens);
-        this.addObjectsToScene(arena.mesh);
+        this.addToScene(arena.mesh);
     }
 
     update() {
@@ -106,7 +106,7 @@ export class BoidSimulation extends Simulation {
         while (difference > 0) {
             // generate new boids
             const boid = Boid.generateWithRandomPosAndVel();
-            this.addObjectToScene(boid.mesh);
+            this.addToScene(boid.mesh);
             this.boids.push(boid);
             difference--;
         }
