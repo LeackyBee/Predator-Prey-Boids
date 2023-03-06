@@ -1,13 +1,13 @@
 import "./main.css";
 import { BoidSimulation } from "./BoidSimulation";
 
-var simulation: BoidSimulation;
+let simulation: BoidSimulation;
 
 window.addEventListener("load", (_event: Event) => {
     simulation = new BoidSimulation();
     // uncomment this line to draw a set of axes, to help in development knowing which way is x/y/z
     // simulation.enableAxesHelper();
-    animate(); 
+    animate();
 });
 
 /**
