@@ -8,13 +8,18 @@ export interface BoidOptions {
     position: THREE.Vector3;
     // Initial boid velocity
     velocity: THREE.Vector3;
+    // Boid acceleration (change in velocity per timestep)
+    acceleration: number;
     photorealisticRendering: boolean;
 }
 
 export class Boid {
     mesh: THREE.Mesh;
 
-    velocity: THREE.Vector3;
+    actualVelocity: THREE.Vector3;
+    targetVelocity: THREE.Vector3;
+
+    acceleration: number;
 
     /**
      * Each boid has a random bias that gets added to the calculated velocity
@@ -42,15 +47,23 @@ export class Boid {
 
         let material: Material;
         if (options.photorealisticRendering) {
-            material = new THREE.MeshStandardMaterial({ color: this.generateIndividualColour(options.photorealisticRendering), metalness: 1 });
+            material = new THREE.MeshStandardMaterial({
+                color: this.generateIndividualColour(options.photorealisticRendering),
+                metalness: 1,
+            });
         } else {
-            material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour(options.photorealisticRendering) });
+            material = new THREE.MeshBasicMaterial({
+                color: this.generateIndividualColour(options.photorealisticRendering),
+            });
         }
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 
-        this.velocity = options.velocity;
+        this.actualVelocity = options.velocity;
+        this.targetVelocity = options.velocity.clone();
+
+        this.acceleration = options.acceleration;
     }
 
     /**
@@ -84,7 +97,8 @@ export class Boid {
     static generateWithRandomPosAndVel(options?: {
         positionBounds?: Bounds3D;
         velocityBounds?: Bounds3D;
-        photorealisticRendering: boolean
+        acceleration?: number;
+        photorealisticRendering: boolean;
     }): Boid {
         // default position and velocity bounds
         const minXPos = options?.positionBounds?.xMin ?? -100;
@@ -101,6 +115,8 @@ export class Boid {
         const minZVel = options?.velocityBounds?.zMin ?? -0.2;
         const maxZVel = options?.velocityBounds?.zMax ?? 0.2;
 
+        const acceleration = options?.acceleration ?? 0.01;
+
         return new Boid({
             position: new THREE.Vector3(
                 Math.random() * (maxXPos - minXPos) + minXPos,
@@ -112,31 +128,46 @@ export class Boid {
                 Math.random() * (maxYVel - minYVel) + minYVel,
                 Math.random() * (maxZVel - minZVel) + minZVel,
             ),
-            photorealisticRendering: options !== undefined && options.photorealisticRendering
+            acceleration,
+            photorealisticRendering: options !== undefined && options.photorealisticRendering,
         });
     }
 
     update(rules: Rule[], ruleArguments: RuleArguments) {
-        // point the void to face in the direction it's moving
-        this.pointInDirection(this.velocity);
+        this.updateVelocity(rules, ruleArguments);
+        this.move();
+    }
 
+    updateVelocity(rules: Rule[], ruleArguments: RuleArguments) {
         for (const rule of rules) {
             const ruleVector = rule.calculateVector(this, ruleArguments);
-            this.velocity.add(ruleVector);
+            this.targetVelocity.add(ruleVector);
         }
 
-        if (this.velocity.length() > ruleArguments.simParams.maxSpeed) {
-            this.velocity.setLength(ruleArguments.simParams.maxSpeed);
+        if (this.targetVelocity.length() > ruleArguments.simParams.maxSpeed) {
+            this.targetVelocity.setLength(ruleArguments.simParams.maxSpeed);
         }
 
         this.updateRandomBias(
             ruleArguments.simParams.randomnessPerTimestep,
             ruleArguments.simParams.randomnessLimit,
         );
-        this.velocity.add(this.randomBias);
+        this.targetVelocity.add(this.randomBias);
+    }
 
+    move() {
+        // accelerate towards the target velocity
+        if (this.actualVelocity !== this.targetVelocity) {
+            const updateVelocity = new THREE.Vector3()
+                .subVectors(this.targetVelocity, this.actualVelocity)
+                .setLength(this.acceleration);
+            this.actualVelocity.add(updateVelocity);
+        }
+
+        // point the void to face in the direction it's moving
+        this.pointInDirection(this.actualVelocity);
         // move the boid by its velocity vector
-        this.position.add(this.velocity);
+        this.position.add(this.actualVelocity);
     }
 
     /**

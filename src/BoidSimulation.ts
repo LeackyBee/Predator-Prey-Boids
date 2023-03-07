@@ -19,6 +19,7 @@ export interface BoidSimulationParams {
     boidCount: number;
     visibilityThreshold: number;
     maxSpeed: number;
+    acceleration: number;
     worldDimens: Bounds3D;
     photorealisticRendering: boolean;
     randomnessPerTimestep: number;
@@ -34,8 +35,9 @@ export class BoidSimulation extends Simulation {
         boidCount: 50,
         visibilityThreshold: 50,
         maxSpeed: 0.5,
+        acceleration: 0.01,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
-        photorealisticRendering: true,
+        photorealisticRendering: false,
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
     };
@@ -99,34 +101,32 @@ export class BoidSimulation extends Simulation {
         if (this.simParams.photorealisticRendering) {
             this.initializePhotorealisticRendering();
         }
-
     }
 
     initializePhotorealisticRendering() {
-
         // Sun
         this.sun = new THREE.Vector3();
 
         // Water
         const waterGeometry = new THREE.PlaneGeometry(10_000, 10_000);
 
-        this.water = new Water(
-            waterGeometry,
-            {
-                textureWidth: 512,
-                textureHeight: 512,
-                waterNormals: new THREE.TextureLoader().load("textures/waternormals.jpg", function (texture) {
+        this.water = new Water(waterGeometry, {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load(
+                "textures/waternormals.jpg",
+                function (texture) {
                     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                }),
-                sunDirection: new THREE.Vector3(),
-                sunColor: 0xffffff,
-                waterColor: 0x001e0f,
-                distortionScale: 3.7,
-                fog: true
-            }
-        );
+                },
+            ),
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 3.7,
+            fog: true,
+        });
 
-        this.water.rotation.x = - Math.PI / 2;
+        this.water.rotation.x = -Math.PI / 2;
         this.addToScene(this.water);
 
         // Sky
@@ -136,10 +136,10 @@ export class BoidSimulation extends Simulation {
 
         if (this.sky.material instanceof ShaderMaterial) {
             const skyUniforms = this.sky.material.uniforms;
-            skyUniforms['turbidity'].value = 10;
-            skyUniforms['rayleigh'].value = 2;
-            skyUniforms['mieCoefficient'].value = 0.005;
-            skyUniforms['mieDirectionalG'].value = 0.8;
+            skyUniforms["turbidity"].value = 10;
+            skyUniforms["rayleigh"].value = 2;
+            skyUniforms["mieCoefficient"].value = 0.005;
+            skyUniforms["mieDirectionalG"].value = 0.8;
         }
 
         this.generator = new THREE.PMREMGenerator(this.renderer);
@@ -147,9 +147,15 @@ export class BoidSimulation extends Simulation {
     }
 
     updateSun() {
-        if (!this.simParams.photorealisticRendering) throw new Error('Photorealistic rendering is disabled.');
-        if (this.sun === undefined || this.sky === undefined || this.water === undefined || this.generator === undefined) {
-            throw new Error('One or more photorealistic rendering variables are undefined.');
+        if (!this.simParams.photorealisticRendering)
+            throw new Error("Photorealistic rendering is disabled.");
+        if (
+            this.sun === undefined ||
+            this.sky === undefined ||
+            this.water === undefined ||
+            this.generator === undefined
+        ) {
+            throw new Error("One or more photorealistic rendering variables are undefined.");
         }
 
         const phi = THREE.MathUtils.degToRad(90 - SunParams.elevation);
@@ -158,11 +164,11 @@ export class BoidSimulation extends Simulation {
         this.sun.setFromSphericalCoords(1, phi, theta);
 
         if (this.sky.material instanceof ShaderMaterial) {
-            this.sky.material.uniforms['sunPosition'].value.copy(this.sun);
+            this.sky.material.uniforms["sunPosition"].value.copy(this.sun);
         }
 
         if (this.water.material instanceof ShaderMaterial) {
-            this.water.material.uniforms['sunDirection'].value.copy(this.sun).normalize();
+            this.water.material.uniforms["sunDirection"].value.copy(this.sun).normalize();
         }
 
         if (this.renderTarget !== undefined) {
@@ -182,11 +188,15 @@ export class BoidSimulation extends Simulation {
             boid.update(this.rules, {
                 neighbours: this.getBoidNeighbours(boid),
                 simParams: this.simParams,
-            })
+            }),
         );
 
-        if (this.simParams.photorealisticRendering && this.water !== undefined && this.water.material instanceof ShaderMaterial) {
-            this.water.material.uniforms['time'].value += 1.0 / 60.0;
+        if (
+            this.simParams.photorealisticRendering &&
+            this.water !== undefined &&
+            this.water.material instanceof ShaderMaterial
+        ) {
+            this.water.material.uniforms["time"].value += 1.0 / 60.0;
         }
 
         super.update();
@@ -201,7 +211,10 @@ export class BoidSimulation extends Simulation {
         let difference = this.simParams.boidCount - this.boids.length;
         while (difference > 0) {
             // generate new boids
-            const boid = Boid.generateWithRandomPosAndVel({photorealisticRendering: this.simParams.photorealisticRendering});
+            const boid = Boid.generateWithRandomPosAndVel({
+                acceleration: this.simParams.acceleration,
+                photorealisticRendering: this.simParams.photorealisticRendering,
+            });
             this.addToScene(boid.mesh);
             this.boids.push(boid);
             difference--;
