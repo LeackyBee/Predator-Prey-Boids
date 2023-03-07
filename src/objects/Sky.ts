@@ -25,16 +25,16 @@ export class Sky extends Mesh {
 
 	constructor() {
 
-		const material = new ShaderMaterial( {
+        const material = new ShaderMaterial({
 			name: 'SkyShader',
 			fragmentShader: SkyShader.fragmentShader,
 			vertexShader: SkyShader.vertexShader,
 			uniforms: UniformsUtils.clone( SkyShader.uniforms ),
 			side: BackSide,
 			depthWrite: false
-		} );
+		});
 
-		super( new BoxGeometry( 1, 1, 1 ), material );
+		super(new BoxGeometry(1, 1, 1), material);
 
 	}
 

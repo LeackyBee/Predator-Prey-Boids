@@ -10,9 +10,10 @@ import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
 import { Arena } from "./objects/Arena";
 import { Water } from "./objects/Water";
-import { Sky } from "./objects/Sky.js";
+import { Sky } from "./objects/Sky";
 import * as THREE from "three";
 import { SunParams } from "./objects/Sun";
+import { ShaderMaterial } from "three";
 
 export interface BoidSimulationParams {
     boidCount: number;
@@ -48,8 +49,8 @@ export class BoidSimulation extends Simulation {
     ];
 
     private readonly floor?: Floor;
-    private readonly water?: Water;
-    private readonly sky?: Sky;
+    private water?: Water;
+    private sky?: Sky;
     private sun?: THREE.Vector3;
     private generator?: THREE.PMREMGenerator;
     private renderTarget?: THREE.WebGLRenderTarget;
@@ -96,71 +97,79 @@ export class BoidSimulation extends Simulation {
         this.addToScene(arena.mesh);
 
         if (this.simParams.photorealisticRendering) {
-
-            // Sun
-            this.sun = new THREE.Vector3();
-
-            // Water
-            const waterGeometry = new THREE.PlaneGeometry(10_000, 10_000);
-
-            this.water = new Water(
-                waterGeometry,
-                {
-                    textureWidth: 512,
-                    textureHeight: 512,
-                    waterNormals: new THREE.TextureLoader().load("textures/waternormals.jpg", function (texture) {
-                        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                    }),
-                    sunDirection: new THREE.Vector3(),
-                    sunColor: 0xffffff,
-                    waterColor: 0x001e0f,
-                    distortionScale: 3.7,
-                    fog: true
-                }
-            );
-
-            this.water.rotation.x = - Math.PI / 2;
-            this.addToScene(this.water);
-
-            // Sky
-            this.sky = new Sky();
-            this.sky.scale.setScalar(10_000);
-            this.addToScene(this.sky);
-
-            // @ts-ignore
-            const skyUniforms = this.sky.material.uniforms;
-
-            skyUniforms[ 'turbidity' ].value = 10;
-            skyUniforms[ 'rayleigh' ].value = 2;
-            skyUniforms[ 'mieCoefficient' ].value = 0.005;
-            skyUniforms[ 'mieDirectionalG' ].value = 0.8;
-
-            // @ts-ignore
-            this.generator = new THREE.PMREMGenerator(this.renderer);
-            this.updateSun();
-
+            this.initializePhotorealisticRendering();
         }
 
     }
 
-    updateSun() {
-        if (!this.simParams.photorealisticRendering) throw new Error('Photorealistic rendering is disabled');
-        if (this.sun === undefined) throw new Error('Sun is undefined');
+    initializePhotorealisticRendering() {
 
-        const phi = THREE.MathUtils.degToRad( 90 - SunParams.elevation );
-        const theta = THREE.MathUtils.degToRad( SunParams.azimuth );
+        // Sun
+        this.sun = new THREE.Vector3();
+
+        // Water
+        const waterGeometry = new THREE.PlaneGeometry(10_000, 10_000);
+
+        this.water = new Water(
+            waterGeometry,
+            {
+                textureWidth: 512,
+                textureHeight: 512,
+                waterNormals: new THREE.TextureLoader().load("textures/waternormals.jpg", function (texture) {
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                }),
+                sunDirection: new THREE.Vector3(),
+                sunColor: 0xffffff,
+                waterColor: 0x001e0f,
+                distortionScale: 3.7,
+                fog: true
+            }
+        );
+
+        this.water.rotation.x = - Math.PI / 2;
+        this.addToScene(this.water);
+
+        // Sky
+        this.sky = new Sky();
+        this.sky.scale.setScalar(10_000);
+        this.addToScene(this.sky);
+
+        if (this.sky.material instanceof ShaderMaterial) {
+            const skyUniforms = this.sky.material.uniforms;
+            skyUniforms['turbidity'].value = 10;
+            skyUniforms['rayleigh'].value = 2;
+            skyUniforms['mieCoefficient'].value = 0.005;
+            skyUniforms['mieDirectionalG'].value = 0.8;
+        }
+
+        this.generator = new THREE.PMREMGenerator(this.renderer);
+        this.updateSun();
+    }
+
+    updateSun() {
+        if (!this.simParams.photorealisticRendering) throw new Error('Photorealistic rendering is disabled.');
+        if (this.sun === undefined || this.sky === undefined || this.water === undefined || this.generator === undefined) {
+            throw new Error('One or more photorealistic rendering variables are undefined.');
+        }
+
+        const phi = THREE.MathUtils.degToRad(90 - SunParams.elevation);
+        const theta = THREE.MathUtils.degToRad(SunParams.azimuth);
 
         this.sun.setFromSphericalCoords(1, phi, theta);
 
-        // @ts-ignore
-        this.sky.material.uniforms[ 'sunPosition' ].value.copy( this.sun );
-        // @ts-ignore
-        this.water.material.uniforms[ 'sunDirection' ].value.copy( this.sun ).normalize();
+        if (this.sky.material instanceof ShaderMaterial) {
+            this.sky.material.uniforms['sunPosition'].value.copy(this.sun);
+        }
 
-        if (this.renderTarget !== undefined) this.renderTarget.dispose();
-        // @ts-ignore
-        this.renderTarget = this.generator.fromScene( this.sky );
+        if (this.water.material instanceof ShaderMaterial) {
+            this.water.material.uniforms['sunDirection'].value.copy(this.sun).normalize();
+        }
 
+        if (this.renderTarget !== undefined) {
+            this.renderTarget.dispose();
+        }
+
+        this.renderTarget = this.generator.fromScene(this.scene);
         this.scene.environment = this.renderTarget.texture;
     }
 
@@ -176,9 +185,8 @@ export class BoidSimulation extends Simulation {
             })
         );
 
-        if (this.simParams.photorealisticRendering) {
-            // @ts-ignore
-            this.water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+        if (this.simParams.photorealisticRendering && this.water !== undefined && this.water.material instanceof ShaderMaterial) {
+            this.water.material.uniforms['time'].value += 1.0 / 60.0;
         }
 
         super.update();

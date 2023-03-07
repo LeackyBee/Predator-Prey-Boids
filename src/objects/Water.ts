@@ -260,8 +260,9 @@ export class Water extends Mesh {
 			mirrorCamera.up.reflect( normal );
 			mirrorCamera.lookAt( target );
 
-			// @ts-ignore
-			mirrorCamera.far = camera.far; // Used in WebGLBackground
+			if (camera instanceof PerspectiveCamera) {
+			    mirrorCamera.far = camera.far; // Used in WebGLBackground
+			}
 
 			mirrorCamera.updateMatrixWorld();
 			mirrorCamera.projectionMatrix.copy( camera.projectionMatrix );
@@ -328,14 +329,8 @@ export class Water extends Mesh {
 			renderer.setRenderTarget( currentRenderTarget );
 
 			// Restore viewport
-
-			// @ts-ignore
-			const viewport = camera.viewport;
-
-			if ( viewport !== undefined ) {
-
-				renderer.state.viewport( viewport );
-
+			if ('viewport' in camera && camera.viewport instanceof Vector4) {
+				renderer.state.viewport(camera.viewport);
 			}
 
 		};
