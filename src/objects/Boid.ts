@@ -134,6 +134,11 @@ export class Boid {
     }
 
     update(rules: Rule[], ruleArguments: RuleArguments) {
+        this.updateVelocity(rules, ruleArguments);
+        this.move();
+    }
+
+    updateVelocity(rules: Rule[], ruleArguments: RuleArguments) {
         for (const rule of rules) {
             const ruleVector = rule.calculateVector(this, ruleArguments);
             this.targetVelocity.add(ruleVector);
@@ -148,7 +153,9 @@ export class Boid {
             ruleArguments.simParams.randomnessLimit,
         );
         this.targetVelocity.add(this.randomBias);
+    }
 
+    move() {
         // accelerate towards the target velocity
         if (this.actualVelocity !== this.targetVelocity) {
             const updateVelocity = new THREE.Vector3()
