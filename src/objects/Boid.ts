@@ -92,6 +92,7 @@ export class Boid {
         // constrain lightness to range [0, 1]
         l = Math.max(l, 0);
         l = Math.min(l, 1);
+        
 
         return new THREE.Color().setHSL(this.baseColour.h, this.baseColour.s, l);
     }
