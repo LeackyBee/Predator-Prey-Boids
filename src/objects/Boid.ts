@@ -11,8 +11,6 @@ export interface BoidOptions {
     // Initial boid velocity
     velocity: THREE.Vector3;
     // Boid acceleration (change in velocity per timestep)
-    acceleration: number;
-    photorealisticRendering: boolean;
     colour?: {h: number, s:number, l: number};
 }
 
@@ -58,14 +56,14 @@ export class Boid {
         const geometry = new THREE.ConeGeometry(1, 4);
 
         let material: Material;
-        if (options.photorealisticRendering) {
+        if (options.simParams.photorealisticRendering) {
             material = new THREE.MeshStandardMaterial({
-                color: this.generateIndividualColour(options.photorealisticRendering),
+                color: this.generateIndividualColour(options.simParams.photorealisticRendering),
                 metalness: 1,
             });
         } else {
             material = new THREE.MeshBasicMaterial({
-                color: this.generateIndividualColour(options.photorealisticRendering),
+                color: this.generateIndividualColour(options.simParams.photorealisticRendering),
             });
         }
 
@@ -76,7 +74,7 @@ export class Boid {
         this.maxSpeed = options.simParams.boidMaxSpeed;
         this.targetVelocity = options.velocity.clone();
 
-        this.acceleration = options.acceleration;
+        this.acceleration = options.simParams.boidAcceleration;
     }
 
     /**
@@ -106,7 +104,8 @@ export class Boid {
         return this.isAlive;
     }
 
-    public killBoid(){
+    public kill(){
+        console.log("Dead");
         this.isAlive = false;
     }
 
@@ -136,8 +135,6 @@ export class Boid {
         const minZVel = options?.velocityBounds?.zMin ?? -0.2;
         const maxZVel = options?.velocityBounds?.zMax ?? 0.2;
 
-        const acceleration = options?.acceleration ?? 0.01;
-
         return new Boid({
             position: new THREE.Vector3(
                 Math.random() * (maxXPos - minXPos) + minXPos,
@@ -149,8 +146,6 @@ export class Boid {
                 Math.random() * (maxYVel - minYVel) + minYVel,
                 Math.random() * (maxZVel - minZVel) + minZVel,
             ),
-            acceleration,
-            photorealisticRendering: options !== undefined && options.photorealisticRendering,
             simParams,
         });
     }
@@ -166,8 +161,8 @@ export class Boid {
             this.targetVelocity.add(ruleVector);
         }
 
-        if (this.targetVelocity.length() > ruleArguments.simParams.maxSpeed) {
-            this.targetVelocity.setLength(ruleArguments.simParams.maxSpeed);
+        if (this.targetVelocity.length() > this.maxSpeed) {
+            this.targetVelocity.setLength(this.maxSpeed);
         }
 
         this.updateRandomBias(

@@ -11,7 +11,7 @@ export interface WorldBoundaryRuleOptions extends RuleOptions {
  * don't go flying off into oblivion
  */
 export class WorldBoundaryRule extends Rule {
-    readonly name = "Avoid World Boundary";
+    readonly name = "Avoid World Boundary Rule";
 
     /**
      * How "sharp" the world boundary should be.

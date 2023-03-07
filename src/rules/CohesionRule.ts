@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Boid } from "../objects/Boid";
 
 export class CohesionRule extends Rule {
-    readonly name = "Cohesion";
+    readonly name = "Cohesion Rule";
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         // no cohesion force if there are no visible neighbours

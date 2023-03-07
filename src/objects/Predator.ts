@@ -15,13 +15,14 @@ export class Predator extends Boid{
     constructor(options: BoidOptions){
         super(options);
         this.maxSpeed = options.simParams.predMaxSpeed;
+        this.acceleration = options.simParams.predAcceleration;
     }
 
     static fromBoid(boid:Boid, simParams: BoidSimulationParams){
-        return new Predator({position: boid.mesh.position, velocity:boid.velocity, colour:{h:0, s:1, l:0.3}, simParams: simParams});
+        return new Predator({position: boid.mesh.position, velocity:boid.actualVelocity, colour:{h:0, s:1, l:0.3}, simParams: simParams});
     }
 
-    public setTarget(target:Boid){
+    public setTarget(target:Boid|null){
         this.target = target;
     }
 

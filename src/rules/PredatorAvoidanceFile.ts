@@ -2,12 +2,12 @@ import { Rule, RuleArguments, RuleOptions } from "./Rule";
 import { Boid } from "../objects/Boid";
 import * as THREE from "three";
 
-export interface CollisionAvoidanceRuleOptions extends RuleOptions {
+export interface PredatorAvoidanceRuleOptions extends RuleOptions {
     sharpness?: number;
 }
 
-export class CollisionAvoidanceRule extends Rule {
-    readonly name = "Collision Avoidance Rule";
+export class PredatorAvoidanceRule extends Rule {
+    readonly name = "Predator Avoidance Rule";
 
     /**
      * How "aggressive" the collision avoidance should be.
@@ -20,27 +20,24 @@ export class CollisionAvoidanceRule extends Rule {
      */
     private readonly SHARPNESS;
 
-    constructor(weight: number, options?: CollisionAvoidanceRuleOptions) {
+    constructor(weight: number, options?: PredatorAvoidanceRuleOptions) {
         super(weight, options);
         this.SHARPNESS = options?.sharpness ?? 3;
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
-        const collisionAvoidVector = new THREE.Vector3();
+        const predatorAvoidVector = new THREE.Vector3();
+        const predRange = thisBoid.predatorRange;
 
         for (const neighbour of args.neighbours) {
             const dist = thisBoid.position.distanceTo(neighbour.position);
 
             const avoidanceMagnitude = Math.pow(this.SHARPNESS, -dist);
 
-            const neighbourAvoidVector = new THREE.Vector3();
-            neighbourAvoidVector.subVectors(thisBoid.position, neighbour.position);
-            neighbourAvoidVector.setLength(avoidanceMagnitude);
-
-            collisionAvoidVector.add(neighbourAvoidVector);
+            
         }
 
-        collisionAvoidVector.multiplyScalar(this.weight);
-        return collisionAvoidVector;
+        predatorAvoidVector.multiplyScalar(this.weight);
+        return predatorAvoidVector;
     }
 }

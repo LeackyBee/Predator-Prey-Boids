@@ -17,18 +17,24 @@ import { ShaderMaterial } from "three";
 import { Doib } from "./objects/Doib";
 import { Predator } from "./objects/Predator";
 import { PreySeekRule } from "./rules/PreySeek";
+import { PredatorAvoidanceRule } from "./rules/PredatorAvoidanceFile";
 
 export interface BoidSimulationParams {
     boidCount: number;
     boidMaxSpeed: number;
-    visibilityThreshold: number;
+    boidAcceleration:number;
+    doibCount: number;
     doibMaxSpeed: number;
-    acceleration: number;
+    doibAcceleration: number;
+    predCount: number;
+    predMaxSpeed: number;
+    predAcceleration: number;
+    predNewTargetChance: number;
+    visibilityThreshold: number;
     worldDimens: Bounds3D;
     photorealisticRendering: boolean;
     randomnessPerTimestep: number;
     randomnessLimit: number;
-    predNewTargetChance: number;
 }
 
 export class BoidSimulation extends Simulation {
@@ -41,13 +47,17 @@ export class BoidSimulation extends Simulation {
     simParams: BoidSimulationParams = {
         boidCount: 50,
         boidMaxSpeed: 0.5,
+        boidAcceleration: 0.01,
+
         doibCount: 50,
+        doibAcceleration: 0.02,
         doibMaxSpeed: 0.4,
+
         predCount: 2,
+        predAcceleration: 0.1,
         predMaxSpeed: 1,
+
         visibilityThreshold: 50,
-        maxSpeed: 0.5,
-        acceleration: 0.01,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
         photorealisticRendering: false,
         randomnessPerTimestep: 0.01,
@@ -73,6 +83,7 @@ export class BoidSimulation extends Simulation {
     ];
 
     predRules = [
+        new WorldBoundaryRule(10),
         new PreySeekRule(10),
     ]
 
@@ -216,10 +227,28 @@ export class BoidSimulation extends Simulation {
         this.scene.environment = this.renderTarget.texture;
     }
 
+    checkDeath(){
+        this.boids.forEach(b => {
+            if(!b.isBoidAlive){
+                this.removeObjectFromScene(b.mesh);
+            }
+        })
+        this.doibs.forEach(b => {
+            if(!b.isBoidAlive){
+                this.removeObjectFromScene(b.mesh);
+            }
+        })
+        this.predators.forEach(b => {
+            if(!b.isBoidAlive){
+                this.removeObjectFromScene(b.mesh);
+            }
+        })
+    }
+
     update() {
         // update boids before updating base simulation to rerender
+        this.checkDeath();
         this.updateBoidCount();
-
         this.boids.map((boid) =>
             // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
             boid.update(this.boidRules, {
@@ -271,7 +300,7 @@ export class BoidSimulation extends Simulation {
             while (difference > 0) {
                 // generate new boids
                 const boid = Boid.generateWithRandomPosAndVel(this.simParams);
-                this.addObjectToScene(boid.mesh);
+                this.addToScene(boid.mesh);
                 this.boids.push(boid);
                 difference--;
             }
@@ -294,7 +323,7 @@ export class BoidSimulation extends Simulation {
             while (difference > 0) {
                 // generate new boids
                 const doib = Doib.fromBoid(Boid.generateWithRandomPosAndVel(this.simParams), this.simParams);
-                this.addObjectToScene(doib.mesh);
+                this.addToScene(doib.mesh);
                 this.doibs.push(doib);
                 difference--;
             }
@@ -317,7 +346,7 @@ export class BoidSimulation extends Simulation {
             while (difference > 0) {
                 // generate new boids
                 const predator = Predator.fromBoid(Boid.generateWithRandomPosAndVel(this.simParams), this.simParams);
-                this.addObjectToScene(predator.mesh);
+                this.addToScene(predator.mesh);
                 this.predators.push(predator);
                 difference--;
             }

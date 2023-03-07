@@ -3,10 +3,9 @@ import * as THREE from "three";
 import { Boid } from "../objects/Boid";
 
 export class SeparationRule extends Rule {
-    readonly name = "Separation";
+    readonly name = "Separation Rule";
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
-        console.log(this.weight);
         const separation = new THREE.Vector3();
 
         for (const neighbour of args.neighbours) {
