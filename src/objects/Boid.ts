@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Rule, RuleArguments } from "../rules/Rule";
 import { Bounds3D } from "../Bounds3D";
+import { Material } from "three";
 import { BoidSimulationParams } from "../BoidSimulation";
 
 export interface BoidOptions {
@@ -9,14 +10,19 @@ export interface BoidOptions {
     position: THREE.Vector3;
     // Initial boid velocity
     velocity: THREE.Vector3;
+    // Boid acceleration (change in velocity per timestep)
+    acceleration: number;
+    photorealisticRendering: boolean;
     colour?: {h: number, s:number, l: number};
 }
 
 export class Boid {
     mesh: THREE.Mesh;
 
-    velocity: THREE.Vector3;
+    actualVelocity: THREE.Vector3;
+    targetVelocity: THREE.Vector3;
 
+    acceleration: number;
     predatorRange = 70;
 
     visibilityRange = 50;
@@ -50,19 +56,39 @@ export class Boid {
             this.baseColour = options.colour;
         }
         const geometry = new THREE.ConeGeometry(1, 4);
-        const material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour() });
+
+        let material: Material;
+        if (options.photorealisticRendering) {
+            material = new THREE.MeshStandardMaterial({
+                color: this.generateIndividualColour(options.photorealisticRendering),
+                metalness: 1,
+            });
+        } else {
+            material = new THREE.MeshBasicMaterial({
+                color: this.generateIndividualColour(options.photorealisticRendering),
+            });
+        }
+
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
-        
-        this.velocity = options.velocity;
+
+        this.actualVelocity = options.velocity;
         this.maxSpeed = options.simParams.boidMaxSpeed;
+        this.targetVelocity = options.velocity.clone();
+
+        this.acceleration = options.acceleration;
     }
 
     /**
      * Randomly generate a version of `this.baseColour`, with lightness adjusted.
      */
-    protected generateIndividualColour() {
-        const lightnessAdjust = Math.random() * 0.4 - 0.2;
+    protected generateIndividualColour(photorealisticRendering: boolean) {
+        let lightnessAdjust: number;
+        if (photorealisticRendering) {
+            lightnessAdjust = Math.random() * 0.8;
+        } else {
+            lightnessAdjust = Math.random() * 0.4 - 0.2;
+        }
 
         let l = this.baseColour.l + lightnessAdjust;
         // constrain lightness to range [0, 1]
@@ -92,6 +118,8 @@ export class Boid {
     static generateWithRandomPosAndVel(simParams: BoidSimulationParams, options?: {
         positionBounds?: Bounds3D;
         velocityBounds?: Bounds3D;
+        acceleration?: number;
+        photorealisticRendering: boolean;
     }): Boid {
         // default position and velocity bounds
         const minXPos = options?.positionBounds?.xMin ?? -100;
@@ -108,6 +136,8 @@ export class Boid {
         const minZVel = options?.velocityBounds?.zMin ?? -0.2;
         const maxZVel = options?.velocityBounds?.zMax ?? 0.2;
 
+        const acceleration = options?.acceleration ?? 0.01;
+
         return new Boid({
             position: new THREE.Vector3(
                 Math.random() * (maxXPos - minXPos) + minXPos,
@@ -119,31 +149,47 @@ export class Boid {
                 Math.random() * (maxYVel - minYVel) + minYVel,
                 Math.random() * (maxZVel - minZVel) + minZVel,
             ),
+            acceleration,
+            photorealisticRendering: options !== undefined && options.photorealisticRendering,
             simParams,
         });
     }
 
     update(rules: Rule[], ruleArguments: RuleArguments) {
-        // point the void to face in the direction it's moving
-        this.pointInDirection(this.velocity);
+        this.updateVelocity(rules, ruleArguments);
+        this.move();
+    }
 
+    updateVelocity(rules: Rule[], ruleArguments: RuleArguments) {
         for (const rule of rules) {
             const ruleVector = rule.calculateVector(this, ruleArguments);
-            this.velocity.add(ruleVector);
+            this.targetVelocity.add(ruleVector);
         }
 
-        if (this.velocity.length() > this.maxSpeed) {
-            this.velocity.setLength(this.maxSpeed);
+        if (this.targetVelocity.length() > ruleArguments.simParams.maxSpeed) {
+            this.targetVelocity.setLength(ruleArguments.simParams.maxSpeed);
         }
 
         this.updateRandomBias(
             ruleArguments.simParams.randomnessPerTimestep,
             ruleArguments.simParams.randomnessLimit,
         );
-        this.velocity.add(this.randomBias);
+        this.targetVelocity.add(this.randomBias);
+    }
 
+    move() {
+        // accelerate towards the target velocity
+        if (this.actualVelocity !== this.targetVelocity) {
+            const updateVelocity = new THREE.Vector3()
+                .subVectors(this.targetVelocity, this.actualVelocity)
+                .setLength(this.acceleration);
+            this.actualVelocity.add(updateVelocity);
+        }
+
+        // point the void to face in the direction it's moving
+        this.pointInDirection(this.actualVelocity);
         // move the boid by its velocity vector
-        this.position.add(this.velocity);
+        this.position.add(this.actualVelocity);
     }
 
     /**

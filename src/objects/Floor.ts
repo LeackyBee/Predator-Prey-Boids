@@ -17,7 +17,7 @@ export class Floor {
         // make the plane horizontal
         floorMesh.rotateX(-Math.PI / 2);
         // so that the floor doesn't "disappear" when camera is rotated to exactly horizontal
-        floorMesh.position.setY(-1);
+        floorMesh.position.setY(-0.1);
 
         if (options?.withGrid ?? true) {
             const gridHelper = new THREE.GridHelper(Floor.SIZE, 30);

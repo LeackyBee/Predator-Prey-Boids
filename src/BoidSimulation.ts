@@ -8,8 +8,12 @@ import { AlignmentRule } from "./rules/AlignmentRule";
 import { Bounds3D } from "./Bounds3D";
 import { WorldBoundaryRule } from "./rules/WorldBoundaryRule";
 import { CollisionAvoidanceRule } from "./rules/CollisionAvoidanceRule";
-import { PredatorAvoidanceRule } from "./rules/PredatorAvoidanceFile";
 import { Arena } from "./objects/Arena";
+import { Water } from "./objects/Water";
+import { Sky } from "./objects/Sky";
+import * as THREE from "three";
+import { SunParams } from "./objects/Sun";
+import { ShaderMaterial } from "three";
 import { Doib } from "./objects/Doib";
 import { Predator } from "./objects/Predator";
 import { PreySeekRule } from "./rules/PreySeek";
@@ -17,11 +21,11 @@ import { PreySeekRule } from "./rules/PreySeek";
 export interface BoidSimulationParams {
     boidCount: number;
     boidMaxSpeed: number;
-    doibCount: number;
+    visibilityThreshold: number;
     doibMaxSpeed: number;
-    predCount: number;
-    predMaxSpeed: number;
+    acceleration: number;
     worldDimens: Bounds3D;
+    photorealisticRendering: boolean;
     randomnessPerTimestep: number;
     randomnessLimit: number;
     predNewTargetChance: number;
@@ -41,7 +45,11 @@ export class BoidSimulation extends Simulation {
         doibMaxSpeed: 0.4,
         predCount: 2,
         predMaxSpeed: 1,
+        visibilityThreshold: 50,
+        maxSpeed: 0.5,
+        acceleration: 0.01,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
+        photorealisticRendering: false,
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
         predNewTargetChance: 0.3,
@@ -62,12 +70,18 @@ export class BoidSimulation extends Simulation {
         new AlignmentRule(1),
         new WorldBoundaryRule(10),
         new CollisionAvoidanceRule(10),
-        new PredatorAvoidanceRule(10),
     ];
 
     predRules = [
         new PreySeekRule(10),
     ]
+
+    private readonly floor?: Floor;
+    private water?: Water;
+    private sky?: Sky;
+    private sun?: THREE.Vector3;
+    private generator?: THREE.PMREMGenerator;
+    private renderTarget?: THREE.WebGLRenderTarget;
 
     constructor(params?: BoidSimulationParams) {
         super();
@@ -113,11 +127,93 @@ export class BoidSimulation extends Simulation {
         }
 
         // add a floor to the simulation
-        const floor = new Floor();
-        this.addObjectToScene(floor.mesh);
+        if (!this.simParams.photorealisticRendering) {
+            this.floor = new Floor();
+            this.addToScene(this.floor.mesh);
+        }
 
-        const arena = new Arena(this.simParams.worldDimens);
-        this.addObjectsToScene(arena.mesh);
+        const arena = new Arena(this.simParams);
+        this.addToScene(arena.mesh);
+
+        if (this.simParams.photorealisticRendering) {
+            this.initializePhotorealisticRendering();
+        }
+    }
+
+    initializePhotorealisticRendering() {
+        // Sun
+        this.sun = new THREE.Vector3();
+
+        // Water
+        const waterGeometry = new THREE.PlaneGeometry(10_000, 10_000);
+
+        this.water = new Water(waterGeometry, {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load(
+                "textures/waternormals.jpg",
+                function (texture) {
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                },
+            ),
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 3.7,
+            fog: true,
+        });
+
+        this.water.rotation.x = -Math.PI / 2;
+        this.addToScene(this.water);
+
+        // Sky
+        this.sky = new Sky();
+        this.sky.scale.setScalar(10_000);
+        this.addToScene(this.sky);
+
+        if (this.sky.material instanceof ShaderMaterial) {
+            const skyUniforms = this.sky.material.uniforms;
+            skyUniforms["turbidity"].value = 10;
+            skyUniforms["rayleigh"].value = 2;
+            skyUniforms["mieCoefficient"].value = 0.005;
+            skyUniforms["mieDirectionalG"].value = 0.8;
+        }
+
+        this.generator = new THREE.PMREMGenerator(this.renderer);
+        this.updateSun();
+    }
+
+    updateSun() {
+        if (!this.simParams.photorealisticRendering)
+            throw new Error("Photorealistic rendering is disabled.");
+        if (
+            this.sun === undefined ||
+            this.sky === undefined ||
+            this.water === undefined ||
+            this.generator === undefined
+        ) {
+            throw new Error("One or more photorealistic rendering variables are undefined.");
+        }
+
+        const phi = THREE.MathUtils.degToRad(90 - SunParams.elevation);
+        const theta = THREE.MathUtils.degToRad(SunParams.azimuth);
+
+        this.sun.setFromSphericalCoords(1, phi, theta);
+
+        if (this.sky.material instanceof ShaderMaterial) {
+            this.sky.material.uniforms["sunPosition"].value.copy(this.sun);
+        }
+
+        if (this.water.material instanceof ShaderMaterial) {
+            this.water.material.uniforms["sunDirection"].value.copy(this.sun).normalize();
+        }
+
+        if (this.renderTarget !== undefined) {
+            this.renderTarget.dispose();
+        }
+
+        this.renderTarget = this.generator.fromScene(this.scene);
+        this.scene.environment = this.renderTarget.texture;
     }
 
     update() {
@@ -155,6 +251,14 @@ export class BoidSimulation extends Simulation {
             predators: this.predators,
         }),)
 
+
+        if (
+            this.simParams.photorealisticRendering &&
+            this.water !== undefined &&
+            this.water.material instanceof ShaderMaterial
+        ) {
+            this.water.material.uniforms["time"].value += 1.0 / 60.0;
+        }
 
         super.update();
     }
@@ -236,20 +340,10 @@ export class BoidSimulation extends Simulation {
             if (otherBoid === boid) {
                 continue;
             }
-            if (boid.isOtherBoidVisible(otherBoid, boid.visibilityRange)) {
+            if (boid.isOtherBoidVisible(otherBoid, this.simParams.visibilityThreshold)) {
                 neighbours.push(otherBoid);
             }
         }
         return neighbours;
-    }
-
-    getBoidPredators(boid: Boid): Boid[] {
-        const predators = [];
-        for (const predator of this.predators) {
-            if (boid.isOtherBoidVisible(predator, boid.predatorRange)) {
-                predators.push(predator);
-            }
-        }
-        return predators;
     }
 }
