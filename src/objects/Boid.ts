@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import { Rule, RuleArguments } from "../rules/Rule";
 import { Bounds3D } from "../Bounds3D";
+import { Material } from "three";
 
 export interface BoidOptions {
     // Initial boid position
     position: THREE.Vector3;
     // Initial boid velocity
     velocity: THREE.Vector3;
+    photorealisticRendering: boolean;
 }
 
 export class Boid {
@@ -37,7 +39,14 @@ export class Boid {
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         const geometry = new THREE.ConeGeometry(1, 4);
-        const material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour() });
+
+        let material: Material;
+        if (options.photorealisticRendering) {
+            material = new THREE.MeshStandardMaterial({ color: this.generateIndividualColour(options.photorealisticRendering), metalness: 1 });
+        } else {
+            material = new THREE.MeshBasicMaterial({ color: this.generateIndividualColour(options.photorealisticRendering) });
+        }
+
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(options.position.x, options.position.y, options.position.z);
 
@@ -47,8 +56,13 @@ export class Boid {
     /**
      * Randomly generate a version of `this.baseColour`, with lightness adjusted.
      */
-    private generateIndividualColour() {
-        const lightnessAdjust = Math.random() * 0.4 - 0.2;
+    private generateIndividualColour(photorealisticRendering: boolean) {
+        let lightnessAdjust: number;
+        if (photorealisticRendering) {
+            lightnessAdjust = Math.random() * 0.8;
+        } else {
+            lightnessAdjust = Math.random() * 0.4 - 0.2;
+        }
 
         let l = this.baseColour.l + lightnessAdjust;
         // constrain lightness to range [0, 1]
@@ -70,6 +84,7 @@ export class Boid {
     static generateWithRandomPosAndVel(options?: {
         positionBounds?: Bounds3D;
         velocityBounds?: Bounds3D;
+        photorealisticRendering: boolean
     }): Boid {
         // default position and velocity bounds
         const minXPos = options?.positionBounds?.xMin ?? -100;
@@ -97,6 +112,7 @@ export class Boid {
                 Math.random() * (maxYVel - minYVel) + minYVel,
                 Math.random() * (maxZVel - minZVel) + minZVel,
             ),
+            photorealisticRendering: options !== undefined && options.photorealisticRendering
         });
     }
 
