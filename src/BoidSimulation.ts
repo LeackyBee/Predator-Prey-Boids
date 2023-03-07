@@ -12,14 +12,19 @@ import { PredatorAvoidanceRule } from "./rules/PredatorAvoidanceFile";
 import { Arena } from "./objects/Arena";
 import { Doib } from "./objects/Doib";
 import { Predator } from "./objects/Predator";
+import { PreySeekRule } from "./rules/PreySeek";
 
 export interface BoidSimulationParams {
     boidCount: number;
+    boidMaxSpeed: number;
     doibCount: number;
+    doibMaxSpeed: number;
     predCount: number;
+    predMaxSpeed: number;
     worldDimens: Bounds3D;
     randomnessPerTimestep: number;
     randomnessLimit: number;
+    predNewTargetChance: number;
 }
 
 export class BoidSimulation extends Simulation {
@@ -31,14 +36,18 @@ export class BoidSimulation extends Simulation {
 
     simParams: BoidSimulationParams = {
         boidCount: 50,
+        boidMaxSpeed: 0.5,
         doibCount: 50,
+        doibMaxSpeed: 0.4,
         predCount: 2,
+        predMaxSpeed: 1,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
         randomnessPerTimestep: 0.01,
         randomnessLimit: 0.1,
+        predNewTargetChance: 0.3,
     };
 
-    rules = [
+    boidRules = [
         new SeparationRule(0.8),
         new CohesionRule(1),
         new AlignmentRule(1),
@@ -46,6 +55,19 @@ export class BoidSimulation extends Simulation {
         new CollisionAvoidanceRule(10),
         new PredatorAvoidanceRule(10),
     ];
+
+    doibRules = [
+        new SeparationRule(0.8),
+        new CohesionRule(1),
+        new AlignmentRule(1),
+        new WorldBoundaryRule(10),
+        new CollisionAvoidanceRule(10),
+        new PredatorAvoidanceRule(10),
+    ];
+
+    predRules = [
+        new PreySeekRule(10),
+    ]
 
     constructor(params?: BoidSimulationParams) {
         super();
@@ -71,10 +93,23 @@ export class BoidSimulation extends Simulation {
         randomnessGui.add(this.simParams, "randomnessLimit", 0, 0.5, 0.01).name("Limit");
 
         // controls to change rule weights
-        const ruleWeightsGui = this.controlsGui.addFolder("Rule weights");
-        ruleWeightsGui.open();
-        for (const rule of this.rules) {
-            ruleWeightsGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        const boidRuleWeightsGui = this.controlsGui.addFolder("Boid Options (Blue)");
+        boidRuleWeightsGui.open();
+        for (const rule of this.boidRules) {
+            boidRuleWeightsGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        }
+
+        // controls to change level of randomness
+        const doibRuleWeightGui = this.controlsGui.addFolder("Doib Options (Green)");
+        doibRuleWeightGui.open();
+        for (const rule of this.doibRules) {
+            doibRuleWeightGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        }
+
+        const predRuleWeightGui = this.controlsGui.addFolder("Predator Options (Red)");
+        predRuleWeightGui.open();
+        for (const rule of this.predRules) {
+            predRuleWeightGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
         }
 
         // add a floor to the simulation
@@ -91,20 +126,35 @@ export class BoidSimulation extends Simulation {
 
         this.boids.map((boid) =>
             // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
-            boid.update(this.rules, {
+            boid.update(this.boidRules, {
                 neighbours: this.getBoidNeighbours(boid),
                 simParams: this.simParams,
-                predators: this.getBoidPredators(boid),
+                boids: this.boids,
+                doibs: this.doibs,
+                predators: this.predators,
             }),
         );
 
         this.doibs.map((doib) =>
         // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
-        doib.update(this.rules, {
+        doib.update(this.doibRules, {
             neighbours: this.getBoidNeighbours(doib),
             simParams: this.simParams,
-            predators: this.getBoidPredators(doib),
+            boids: this.boids,
+            doibs: this.doibs,
+            predators: this.predators,
         }),)
+
+        this.predators.map((pred) =>
+        // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),
+        pred.update(this.predRules, {
+            neighbours: this.getBoidNeighbours(pred),
+            simParams: this.simParams,
+            boids: this.boids,
+            doibs: this.doibs,
+            predators: this.predators,
+        }),)
+
 
         super.update();
     }
@@ -116,7 +166,7 @@ export class BoidSimulation extends Simulation {
             let difference = this.simParams.boidCount - this.boids.length;
             while (difference > 0) {
                 // generate new boids
-                const boid = Boid.generateWithRandomPosAndVel();
+                const boid = Boid.generateWithRandomPosAndVel(this.simParams);
                 this.addObjectToScene(boid.mesh);
                 this.boids.push(boid);
                 difference--;
@@ -139,7 +189,7 @@ export class BoidSimulation extends Simulation {
             let difference = this.simParams.doibCount - this.doibs.length;
             while (difference > 0) {
                 // generate new boids
-                const doib = Doib.fromBoid(Boid.generateWithRandomPosAndVel());
+                const doib = Doib.fromBoid(Boid.generateWithRandomPosAndVel(this.simParams), this.simParams);
                 this.addObjectToScene(doib.mesh);
                 this.doibs.push(doib);
                 difference--;
@@ -162,7 +212,7 @@ export class BoidSimulation extends Simulation {
             let difference = this.simParams.predCount - this.predators.length;
             while (difference > 0) {
                 // generate new boids
-                const predator = Predator.fromBoid(Boid.generateWithRandomPosAndVel());
+                const predator = Predator.fromBoid(Boid.generateWithRandomPosAndVel(this.simParams), this.simParams);
                 this.addObjectToScene(predator.mesh);
                 this.predators.push(predator);
                 difference--;
