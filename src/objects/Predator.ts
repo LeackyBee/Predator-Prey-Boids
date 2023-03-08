@@ -5,7 +5,6 @@ import { Boid, BoidOptions } from "./Boid";
 export class Predator extends Boid{
 
     visibilityRange = 100;
-    maxSpeed = 1;
 
     killRange = 10;
 

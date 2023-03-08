@@ -6,6 +6,11 @@ import { Predator } from "../objects/Predator";
 export class PreySeekRule extends Rule {
     readonly name = "Seek Prey Rule";
 
+    private static FILL: number = 100;
+
+    hunger:number = PreySeekRule.FILL;
+
+
     targetSwap(thisBoid:Predator, args:RuleArguments){
         let random = Math.random()
         if(random < args.simParams.predNewTargetChance){
@@ -16,7 +21,8 @@ export class PreySeekRule extends Rule {
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
-        if(!(thisBoid instanceof Predator)){
+        this.hunger--;
+        if(!(thisBoid instanceof Predator) || this.hunger > 0){
             return new THREE.Vector3();
         }
         let output = new THREE.Vector3();
@@ -30,8 +36,8 @@ export class PreySeekRule extends Rule {
         if(target != null){
             if(target.position.distanceTo(thisBoid.position) < thisBoid.killRange){
                 target.kill()
-                target = this.targetSwap(thisBoid,args);
-                thisBoid.setTarget(target);
+                this.hunger = PreySeekRule.FILL;
+                target = null;
             }
         }
 

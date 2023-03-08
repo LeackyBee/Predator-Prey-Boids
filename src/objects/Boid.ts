@@ -48,6 +48,14 @@ export class Boid {
      */
     protected baseColour = { h: 183/360, s: 1, l: 0.3 };
 
+    public setMaxSpeed(newSpeed:number){
+        this.maxSpeed = newSpeed;
+    }
+
+    public setAcceleration(newAcc:number){
+        this.acceleration = newAcc;
+    }
+
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         if(options.colour){
@@ -92,7 +100,7 @@ export class Boid {
         // constrain lightness to range [0, 1]
         l = Math.max(l, 0);
         l = Math.min(l, 1);
-        
+
 
         return new THREE.Color().setHSL(this.baseColour.h, this.baseColour.s, l);
     }

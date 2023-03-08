@@ -80,6 +80,7 @@ export class BoidSimulation extends Simulation {
         new AlignmentRule(1),
         new WorldBoundaryRule(10),
         new CollisionAvoidanceRule(10),
+        new PredatorAvoidanceRule(10),
     ];
 
     predRules = [
@@ -105,9 +106,6 @@ export class BoidSimulation extends Simulation {
         this.controlsGui = new GUI({
             hideable: false,
         });
-        this.controlsGui.add(this.simParams, "boidCount", 10, 200).name("Boid count");
-        this.controlsGui.add(this.simParams, "doibCount", 10, 200).name("Doib count");
-        this.controlsGui.add(this.simParams, "predCount", 1, 5).name("Predator count");
 
         // controls to change level of randomness
         const randomnessGui = this.controlsGui.addFolder("Randomness");
@@ -117,25 +115,48 @@ export class BoidSimulation extends Simulation {
             .name("Per timestep");
         randomnessGui.add(this.simParams, "randomnessLimit", 0, 0.5, 0.01).name("Limit");
 
-        // controls to change rule weights
-        const boidRuleWeightsGui = this.controlsGui.addFolder("Boid Options (Blue)");
-        boidRuleWeightsGui.open();
+        // Boid Options
+        const boidOptions = this.controlsGui.addFolder("Boid Options (Blue)");
+        boidOptions.open();
+        boidOptions.add(this.simParams, "boidCount", 0, 200).name("Boid count");
         for (const rule of this.boidRules) {
-            boidRuleWeightsGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+            boidOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
         }
+        boidOptions.add(this.simParams, "boidMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
+            this.boids.forEach(p => p.setMaxSpeed(newSpeed))
+        });
+        boidOptions.add(this.simParams, "boidAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
+            this.boids.forEach(p => p.setAcceleration(newAcc))
+        });;
 
-        // controls to change level of randomness
-        const doibRuleWeightGui = this.controlsGui.addFolder("Doib Options (Green)");
-        doibRuleWeightGui.open();
+        // Doib Options
+        const doibOptions = this.controlsGui.addFolder("Doib Options (Green)");
+        doibOptions.open();
+        doibOptions.add(this.simParams, "doibCount", 0, 200).name("Doib count");
         for (const rule of this.doibRules) {
-            doibRuleWeightGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+            doibOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
         }
+        doibOptions.add(this.simParams, "doibMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
+            this.doibs.forEach(p => p.setMaxSpeed(newSpeed))
+        });;
+        doibOptions.add(this.simParams, "doibAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
+            this.doibs.forEach(p => p.setAcceleration(newAcc))
+        });;
 
-        const predRuleWeightGui = this.controlsGui.addFolder("Predator Options (Red)");
-        predRuleWeightGui.open();
+        // Predator Options
+        const predatorOptions = this.controlsGui.addFolder("Predator Options (Red)");
+        predatorOptions.open();
+        predatorOptions.add(this.simParams, "predCount", 0, 5).name("Predator count");
+        predatorOptions.add(this.simParams, "predMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
+            this.predators.forEach(p => p.setMaxSpeed(newSpeed))
+        });
+        predatorOptions.add(this.simParams, "predAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
+            this.predators.forEach(p => p.setAcceleration(newAcc))
+        });;
         for (const rule of this.predRules) {
-            predRuleWeightGui.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+            predatorOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
         }
+        
 
         // add a floor to the simulation
         if (!this.simParams.photorealisticRendering) {

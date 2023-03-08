@@ -5,7 +5,6 @@ import { Boid, BoidOptions } from "./Boid";
 export class Doib extends Boid{
 
     visibilityRange = 40;
-    maxSpeed = 0.3;
 
 
     constructor(options: BoidOptions){
