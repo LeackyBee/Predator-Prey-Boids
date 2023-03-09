@@ -9,16 +9,11 @@ export interface PredatorAvoidanceRuleOptions extends RuleOptions {
 export class PredatorAvoidanceRule extends Rule {
     readonly name = "Predator Avoidance Rule";
 
-    /**
-     * How "aggressive" the collision avoidance should be.
-     * Higher values will allow the boids to be closer together, and will produce
-     * snappier changes in direction to avoid each other.
-     *
-     * Controls the steepness of the curve of the exponential weighting of distance.
-     *
-     * Min value: 1
-     */
     private readonly SHARPNESS;
+
+    private readonly SCARE_TIMER_RESET = 120;
+
+    private scareTimer = this.SCARE_TIMER_RESET;
 
     constructor(weight: number, options?: PredatorAvoidanceRuleOptions) {
         super(weight, options);
@@ -26,16 +21,18 @@ export class PredatorAvoidanceRule extends Rule {
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
-        const predatorAvoidVector = new THREE.Vector3();
-        const predRange = thisBoid.predatorRange;
-
-        for (const neighbour of args.neighbours) {
-            const dist = thisBoid.position.distanceTo(neighbour.position);
-
-            const avoidanceMagnitude = Math.pow(this.SHARPNESS, -dist);
-
-            
+        this.scareTimer--;
+        if(this.scareTimer == 0){
+            thisBoid.calm();
         }
+        const predatorAvoidVector = new THREE.Vector3();
+        
+        args.predators.forEach(p => {
+            if(thisBoid.position.distanceTo(p.position)< thisBoid.predatorRange){
+                thisBoid.scare();
+                predatorAvoidVector.add(thisBoid.position.clone().sub(p.position))
+            }
+        });
 
         predatorAvoidVector.multiplyScalar(this.weight);
         return predatorAvoidVector;

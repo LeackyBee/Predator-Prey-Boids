@@ -54,7 +54,7 @@ export class BoidSimulation extends Simulation {
         doibMaxSpeed: 0.4,
 
         predCount: 2,
-        predAcceleration: 0.1,
+        predAcceleration: 0.005,
         predMaxSpeed: 1,
 
         visibilityThreshold: 50,
@@ -268,7 +268,7 @@ export class BoidSimulation extends Simulation {
 
     update() {
         // update boids before updating base simulation to rerender
-        this.checkDeath();
+        //this.checkDeath();
         this.updateBoidCount();
         this.boids.map((boid) =>
             // boid.update(this.getBoidNeighbours(boid), this.steeringForceCoefficients),

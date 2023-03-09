@@ -21,9 +21,11 @@ export class Boid {
     targetVelocity: THREE.Vector3;
 
     acceleration: number;
-    predatorRange = 70;
+    predatorRange = 10;
 
     visibilityRange = 50;
+
+    protected scared = false;
     protected maxSpeed = 0.5;
 
     protected isAlive = true;
@@ -41,6 +43,18 @@ export class Boid {
      * amount again, so that it doesn't just keep accumulating over time forever.
      */
     randomBias = new THREE.Vector3();
+
+    public scare(){
+        this.scared = true;
+    }
+
+    public calm(){
+        this.scared = false;
+    }
+
+    public isScared(){
+        return this.scared;
+    }
 
     /**
      * Base colour of the boid, before randomly adjusting lightness of each boid.
@@ -160,14 +174,20 @@ export class Boid {
     }
 
     update(rules: Rule[], ruleArguments: RuleArguments) {
-        this.updateVelocity(rules, ruleArguments);
+        if(this.isBoidAlive){
+            this.updateVelocity(rules, ruleArguments);
+        } else{
+            this.fall()
+        }
         this.move();
     }
 
     updateVelocity(rules: Rule[], ruleArguments: RuleArguments) {
-        for (const rule of rules) {
-            const ruleVector = rule.calculateVector(this, ruleArguments);
-            this.targetVelocity.add(ruleVector);
+        if(!this.isScared()){
+            for (const rule of rules) {
+                const ruleVector = rule.calculateVector(this, ruleArguments);
+                this.targetVelocity.add(ruleVector);
+            }
         }
 
         if (this.targetVelocity.length() > this.maxSpeed) {
@@ -194,6 +214,16 @@ export class Boid {
         this.pointInDirection(this.actualVelocity);
         // move the boid by its velocity vector
         this.position.add(this.actualVelocity);
+    }
+
+    fall(){
+        if(this.position.y <= 3){
+            this.targetVelocity = new THREE.Vector3(0,0,0);
+            this.actualVelocity = new THREE.Vector3(0,0,0);
+        } else{
+            this.targetVelocity = new THREE.Vector3(0,-1,0);
+        }
+        
     }
 
     /**
