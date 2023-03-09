@@ -71,6 +71,10 @@ export class Boid {
         this.acceleration = newAcc;
     }
 
+    public setScaredSurge(newSS:number){
+        this.scaredSurge = newSS;
+    }
+
     constructor(options: BoidOptions) {
         // model boids as a cone so we can see their direction
         if(options.colour){

@@ -23,13 +23,16 @@ export interface BoidSimulationParams {
     boidCount: number;
     boidMaxSpeed: number;
     boidAcceleration:number;
+    boidScaredSurge: number;
     doibCount: number;
     doibMaxSpeed: number;
     doibAcceleration: number;
+    doibScaredSurge: number;
     predCount: number;
     predMaxSpeed: number;
     predAcceleration: number;
     predNewTargetChance: number;
+    predHuntAccel: number;
     visibilityThreshold: number;
     worldDimens: Bounds3D;
     photorealisticRendering: boolean;
@@ -48,14 +51,17 @@ export class BoidSimulation extends Simulation {
         boidCount: 50,
         boidMaxSpeed: 0.5,
         boidAcceleration: 0.01,
+        boidScaredSurge: 1.2,
 
         doibCount: 50,
         doibAcceleration: 0.02,
         doibMaxSpeed: 0.4,
+        doibScaredSurge: 1.5,
 
         predCount: 2,
         predAcceleration: 0.005,
         predMaxSpeed: 1,
+        predHuntAccel: 0.05,
 
         visibilityThreshold: 50,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
@@ -119,29 +125,37 @@ export class BoidSimulation extends Simulation {
         const boidOptions = this.controlsGui.addFolder("Boid Options (Blue)");
         boidOptions.open();
         boidOptions.add(this.simParams, "boidCount", 0, 200).name("Boid count");
-        for (const rule of this.boidRules) {
-            boidOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
-        }
         boidOptions.add(this.simParams, "boidMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
             this.boids.forEach(p => p.setMaxSpeed(newSpeed))
         });
         boidOptions.add(this.simParams, "boidAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
             this.boids.forEach(p => p.setAcceleration(newAcc))
-        });;
+        });
+        boidOptions.add(this.simParams, "boidScaredSurge", 1.0,5.0, 0.1).name("Scared Speed Surge").onChange((newSS) => {
+            this.boids.forEach(p => p.setScaredSurge(newSS))
+        })
+        for (const rule of this.boidRules) {
+            boidOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        }
+        
 
         // Doib Options
         const doibOptions = this.controlsGui.addFolder("Doib Options (Green)");
         doibOptions.open();
         doibOptions.add(this.simParams, "doibCount", 0, 200).name("Doib count");
-        for (const rule of this.doibRules) {
-            doibOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
-        }
         doibOptions.add(this.simParams, "doibMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
             this.doibs.forEach(p => p.setMaxSpeed(newSpeed))
         });;
         doibOptions.add(this.simParams, "doibAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
             this.doibs.forEach(p => p.setAcceleration(newAcc))
         });;
+        doibOptions.add(this.simParams, "doibScaredSurge", 1.0,5.0, 0.1).name("Scared Speed Surge").onChange((newSS) => {
+            this.doibs.forEach(p => p.setScaredSurge(newSS))
+        })
+        for (const rule of this.doibRules) {
+            doibOptions.add(rule, "weight", rule.minWeight, rule.maxWeight, 0.1).name(rule.name);
+        }
+        
 
         // Predator Options
         const predatorOptions = this.controlsGui.addFolder("Predator Options (Red)");
