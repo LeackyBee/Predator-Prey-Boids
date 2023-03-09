@@ -10,6 +10,7 @@ export class Doib extends Boid{
     constructor(options: BoidOptions){
         super(options);
         this.maxSpeed = options.simParams.doibMaxSpeed;
+        this.scaredSurge = options.simParams.doibScaredSurge;
         this.acceleration = options.simParams.doibAcceleration;
     }
 

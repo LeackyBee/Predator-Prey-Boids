@@ -27,6 +27,7 @@ export class Boid {
 
     protected scared = false;
     protected maxSpeed = 0.5;
+    protected scaredSurge = 1.5 // Multiplier on maxSpeed when boid is scared
 
     protected isAlive = true;
 
@@ -94,6 +95,7 @@ export class Boid {
 
         this.actualVelocity = options.velocity;
         this.maxSpeed = options.simParams.boidMaxSpeed;
+        this.scaredSurge = options.simParams.boidScaredSurge;
         this.targetVelocity = options.velocity.clone();
 
         this.acceleration = options.simParams.boidAcceleration;
@@ -128,7 +130,6 @@ export class Boid {
     }
 
     public kill(){
-        console.log("Dead");
         this.isAlive = false;
     }
 
@@ -187,9 +188,14 @@ export class Boid {
             const ruleVector = rule.calculateVector(this, ruleArguments);
             this.targetVelocity.add(ruleVector);
         }
-
-        if (this.targetVelocity.length() > this.maxSpeed) {
-            this.targetVelocity.setLength(this.maxSpeed);
+        
+        if(this.isScared()){
+            this.targetVelocity.setLength(this.maxSpeed * this.scaredSurge)
+            this.actualVelocity.setLength(this.maxSpeed * this.scaredSurge);
+        } else{
+            if (this.targetVelocity.length() > this.maxSpeed) {
+                this.targetVelocity.setLength(this.maxSpeed);
+            }
         }
 
         this.updateRandomBias(
