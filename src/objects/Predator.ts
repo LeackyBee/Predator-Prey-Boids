@@ -7,8 +7,12 @@ export class Predator extends Boid{
     visibilityRange = 100;
 
     killRange = 10;
+    huntRange = 50;
 
     protected target: Boid|null = null;
+
+    protected hunting: boolean =  false;
+    protected huntAccelMult = 5;
 
 
     constructor(options: BoidOptions){
@@ -27,6 +31,20 @@ export class Predator extends Boid{
 
     public getTarget(){
         return this.target
+    }
+    
+    public setHunting(){
+        if(!this.hunting){
+            this.acceleration *= this.huntAccelMult;
+            this.hunting = true;
+        }
+    }
+
+    public setSeeking(){
+        if(this.hunting){
+            this.acceleration /= this.huntAccelMult;
+            this.hunting = false;
+        }
     }
 
     public chooseRandomTarget(boids: Boid[]){

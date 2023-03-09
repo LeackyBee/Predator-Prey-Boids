@@ -38,6 +38,10 @@ export class PreySeekRule extends Rule {
                 target.kill()
                 this.hunger = PreySeekRule.FILL;
                 target = null;
+            } else if(target.position.distanceTo(thisBoid.position) < thisBoid.huntRange){
+                thisBoid.setHunting();
+            } else{
+                thisBoid.setSeeking();
             }
         }
 

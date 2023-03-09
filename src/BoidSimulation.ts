@@ -81,9 +81,9 @@ export class BoidSimulation extends Simulation {
     ];
 
     doibRules = [
-        new SeparationRule(0.8),
-        new CohesionRule(1),
-        new AlignmentRule(1),
+        new SeparationRule(0.4),
+        new CohesionRule(1.5),
+        new AlignmentRule(0.7),
         new WorldBoundaryRule(10),
         new CollisionAvoidanceRule(10),
         new PredatorAvoidanceRule(10),
