@@ -33,6 +33,7 @@ export interface BoidSimulationParams {
     predAcceleration: number;
     predNewTargetChance: number;
     predHuntAccel: number;
+    predIdleDistance: number,
     visibilityThreshold: number;
     worldDimens: Bounds3D;
     photorealisticRendering: boolean;
@@ -55,13 +56,14 @@ export class BoidSimulation extends Simulation {
 
         doibCount: 50,
         doibAcceleration: 0.02,
-        doibMaxSpeed: 0.4,
+        doibMaxSpeed: 0.5,
         doibScaredSurge: 1.5,
 
         predCount: 2,
         predAcceleration: 0.005,
         predMaxSpeed: 1,
         predHuntAccel: 0.05,
+        predIdleDistance: 30,
 
         visibilityThreshold: 50,
         worldDimens: Bounds3D.centredXZ(200, 200, 100),
@@ -81,7 +83,7 @@ export class BoidSimulation extends Simulation {
     ];
 
     doibRules = [
-        new SeparationRule(0.4),
+        new SeparationRule(0.1),
         new CohesionRule(1.5),
         new AlignmentRule(0.7),
         new WorldBoundaryRule(10),
@@ -124,7 +126,7 @@ export class BoidSimulation extends Simulation {
         // Boid Options
         const boidOptions = this.controlsGui.addFolder("Boid Options (Blue)");
         boidOptions.open();
-        boidOptions.add(this.simParams, "boidCount", 0, 200).name("Boid count");
+        boidOptions.add(this.simParams, "boidCount", 0, 200,1).name("Boid count");
         boidOptions.add(this.simParams, "boidMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
             this.boids.forEach(p => p.setMaxSpeed(newSpeed))
         });
@@ -142,7 +144,7 @@ export class BoidSimulation extends Simulation {
         // Doib Options
         const doibOptions = this.controlsGui.addFolder("Doib Options (Green)");
         doibOptions.open();
-        doibOptions.add(this.simParams, "doibCount", 0, 200).name("Doib count");
+        doibOptions.add(this.simParams, "doibCount", 0, 200,1).name("Doib count");
         doibOptions.add(this.simParams, "doibMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
             this.doibs.forEach(p => p.setMaxSpeed(newSpeed))
         });;
@@ -160,9 +162,12 @@ export class BoidSimulation extends Simulation {
         // Predator Options
         const predatorOptions = this.controlsGui.addFolder("Predator Options (Red)");
         predatorOptions.open();
-        predatorOptions.add(this.simParams, "predCount", 0, 5).name("Predator count");
+        predatorOptions.add(this.simParams, "predCount", 0, 5,1).name("Predator count");
         predatorOptions.add(this.simParams, "predMaxSpeed", 0,5,0.1).name("Max Speed").onChange((newSpeed) => {
             this.predators.forEach(p => p.setMaxSpeed(newSpeed))
+        });
+        predatorOptions.add(this.simParams, "predIdleDistance", 10,100,5).name("Idle Distance").onChange((newIdle) => {
+            this.predators.forEach(p => p.setIdleDistance(newIdle))
         });
         predatorOptions.add(this.simParams, "predAcceleration", 0,0.1,0.01).name("Acceleration").onChange((newAcc) => {
             this.predators.forEach(p => p.setAcceleration(newAcc))
@@ -400,7 +405,7 @@ export class BoidSimulation extends Simulation {
 
     getBoidNeighbours(boid: Boid): Boid[] {
         const neighbours = [];
-        for (const otherBoid of this.boids.concat(this.doibs)) {
+        for (const otherBoid of this.boids.concat(this.doibs).filter(b=> b.isBoidAlive)) {
             if (otherBoid === boid) {
                 continue;
             }

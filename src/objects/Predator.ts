@@ -13,16 +13,22 @@ export class Predator extends Boid{
 
     protected hunting: boolean =  false;
     protected huntAccelMult = 5;
+    maintainDistance = 30;
 
 
     constructor(options: BoidOptions){
         super(options);
         this.maxSpeed = options.simParams.predMaxSpeed;
         this.acceleration = options.simParams.predAcceleration;
+        this.maintainDistance = options.simParams.predIdleDistance;
     }
 
     static fromBoid(boid:Boid, simParams: BoidSimulationParams){
         return new Predator({position: boid.mesh.position, velocity:boid.actualVelocity, colour:{h:0, s:1, l:0.3}, simParams: simParams});
+    }
+
+    public setIdleDistance(newIdle:number){
+        this.maintainDistance = newIdle;
     }
 
     public setTarget(target:Boid|null){

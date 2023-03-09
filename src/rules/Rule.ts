@@ -30,7 +30,7 @@ export abstract class Rule {
     constructor(weight: number, options?: RuleOptions) {
         this.weight = weight;
         this.minWeight = options?.minWeight ?? 0;
-        this.maxWeight = options?.maxWeight ?? weight * 2;
+        this.maxWeight = options?.maxWeight ?? Math.max(3,weight*2);
     }
 
     abstract calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3;

@@ -22,11 +22,8 @@ export class PreySeekRule extends Rule {
 
     private getMeanTarget(args:RuleArguments){
         const meanPos = new THREE.Vector3();
-
-        args.boids.concat(args.doibs).forEach(b =>
-            meanPos.add(b.position));
-        
-        return meanPos.divideScalar(args.boids.concat(args.doibs).length)
+        args.boids.concat(args.doibs).filter(b=>b.isBoidAlive).forEach(b => meanPos.add(b.position));
+        return meanPos.divideScalar(args.boids.concat(args.doibs).filter(b=>b.isBoidAlive).length)
     }
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
@@ -38,7 +35,11 @@ export class PreySeekRule extends Rule {
 
         if(this.hunger > 0){
             output = this.getMeanTarget(args);
-            return thisBoid.position.clone().sub(output);
+            output.sub(thisBoid.position);
+            if(output.length() < thisBoid.maintainDistance){
+                return new THREE.Vector3;
+            }
+            return output;
         }
 
         // Decide if we want to swap targets
