@@ -183,11 +183,9 @@ export class Boid {
     }
 
     updateVelocity(rules: Rule[], ruleArguments: RuleArguments) {
-        if(!this.isScared()){
-            for (const rule of rules) {
-                const ruleVector = rule.calculateVector(this, ruleArguments);
-                this.targetVelocity.add(ruleVector);
-            }
+        for (const rule of rules) {
+            const ruleVector = rule.calculateVector(this, ruleArguments);
+            this.targetVelocity.add(ruleVector);
         }
 
         if (this.targetVelocity.length() > this.maxSpeed) {

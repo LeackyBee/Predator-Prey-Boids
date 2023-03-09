@@ -21,6 +21,9 @@ export class CohesionRule extends Rule {
 
         centre.normalize();
         centre.multiplyScalar(this.weight);
+        if(thisBoid.isScared()){
+            return new THREE.Vector3(); 
+         }
         return centre;
     }
 }

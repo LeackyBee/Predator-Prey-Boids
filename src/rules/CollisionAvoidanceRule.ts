@@ -41,6 +41,9 @@ export class CollisionAvoidanceRule extends Rule {
         }
 
         collisionAvoidVector.multiplyScalar(this.weight);
+        if(thisBoid.isScared()){
+            return new THREE.Vector3(); 
+         }
         return collisionAvoidVector;
     }
 }

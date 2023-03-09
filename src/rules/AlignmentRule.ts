@@ -5,7 +5,7 @@ import { Boid } from "../objects/Boid";
 export class AlignmentRule extends Rule {
     readonly name = "Alignment Rule";
 
-    calculateVector(_thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
+    calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         // no alignment force if there are no visible neighbours
         if (args.neighbours.length === 0) {
             return new THREE.Vector3();
@@ -20,7 +20,9 @@ export class AlignmentRule extends Rule {
 
         alignment.normalize();
         alignment.multiplyScalar(this.weight);
-
+        if(thisBoid.isScared()){
+           return new THREE.Vector3(); 
+        }
         return alignment;
     }
 }

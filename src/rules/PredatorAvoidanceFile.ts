@@ -11,7 +11,7 @@ export class PredatorAvoidanceRule extends Rule {
 
     private readonly SHARPNESS;
 
-    private readonly SCARE_TIMER_RESET = 120;
+    private readonly SCARE_TIMER_RESET = 400;
 
     private scareTimer = this.SCARE_TIMER_RESET;
 
@@ -22,7 +22,7 @@ export class PredatorAvoidanceRule extends Rule {
 
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         this.scareTimer--;
-        if(this.scareTimer == 0){
+        if(this.scareTimer <= 0){
             thisBoid.calm();
         }
         const predatorAvoidVector = new THREE.Vector3();
@@ -30,6 +30,7 @@ export class PredatorAvoidanceRule extends Rule {
         args.predators.forEach(p => {
             if(thisBoid.position.distanceTo(p.position)< thisBoid.predatorRange){
                 thisBoid.scare();
+                this.scareTimer = this.SCARE_TIMER_RESET;
                 predatorAvoidVector.add(thisBoid.position.clone().sub(p.position))
             }
         });

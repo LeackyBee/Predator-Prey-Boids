@@ -17,6 +17,9 @@ export class SeparationRule extends Rule {
         separation.normalize();
         separation.multiplyScalar(this.weight);
 
+        if(thisBoid.isScared()){
+            return new THREE.Vector3(); 
+         }
         return separation;
     }
 }
