@@ -20,12 +20,26 @@ export class PreySeekRule extends Rule {
         }
     }
 
+    private getMeanTarget(args:RuleArguments){
+        const meanPos = new THREE.Vector3();
+
+        args.boids.concat(args.doibs).forEach(b =>
+            meanPos.add(b.position));
+        
+        return meanPos.divideScalar(args.boids.concat(args.doibs).length)
+    }
+
     calculateVector(thisBoid: Boid, args: RuleArguments): THREE.Vector3 {
         this.hunger--;
-        if(!(thisBoid instanceof Predator) || this.hunger > 0){
+        if(!(thisBoid instanceof Predator)){
             return new THREE.Vector3();
         }
         let output = new THREE.Vector3();
+
+        if(this.hunger > 0){
+            output = this.getMeanTarget(args);
+            return thisBoid.position.clone().sub(output);
+        }
 
         // Decide if we want to swap targets
         let target = this.targetSwap(thisBoid, args);
